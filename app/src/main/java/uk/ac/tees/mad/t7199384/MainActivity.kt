@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.res.painterResource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +25,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    Greeting("Kupo Mart")
                 }
             }
         }
@@ -30,17 +33,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun Greeting(title: String, modifier: Modifier = Modifier) {
+    Row {
+        Image (
+            painter = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = "Splash Screen Image",
+            modifier = modifier
+        )
+    }
+    Row {
+        Text(
+            text = "$title",
+            //modifier = modifier
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     ICATheme {
-        Greeting("Android")
+        Greeting("Kupo Mart")
     }
 }
