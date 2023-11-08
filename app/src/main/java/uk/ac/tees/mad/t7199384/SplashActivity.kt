@@ -43,7 +43,7 @@ class SplashActivity : ComponentActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = Intent(this@SplashActivity,MainActivity::class.java)
             startActivity(intent)
-        }, 3000)
+        }, 1) //set to 3000 later
     }
 }
 
