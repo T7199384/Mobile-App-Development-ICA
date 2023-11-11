@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">ICA</string>
     <string name="title_activity_main">KupoMart</string>
+    <string name="world_file_key">w0R1dk3Y</string>
 
 
     <string-array name="world_array">

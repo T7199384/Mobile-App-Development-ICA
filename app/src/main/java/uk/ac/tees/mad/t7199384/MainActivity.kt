@@ -2,6 +2,7 @@ package uk.ac.tees.mad.t7199384
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -32,10 +33,12 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        var sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        world = sharedPref.getString("world", "Empty").toString()
+
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
-                // A surface container using the 'background' color from the theme
                 Scaffold(
 
                     floatingActionButtonPosition = FabPosition.End,
