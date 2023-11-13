@@ -70,6 +70,8 @@ fun World_Button(world: String) {
             var sharedPref = context.getSharedPreferences(context.resources.getString(R.string.world_file_key), Context.MODE_PRIVATE)
             var edit = sharedPref.edit()
             edit.putString("world",currentWorld)
+            edit.apply()
+
             Toast.makeText(context, "Current world: $currentWorld", Toast.LENGTH_SHORT).show()}
         .setNegativeButton("Cancel"){dialog, which -> Toast.makeText(context, "Current world: $world", Toast.LENGTH_SHORT).show()}
         .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
