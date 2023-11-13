@@ -32,13 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 
-var world = "Crystal"
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         var sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        world = sharedPref.getString("world", "Empty").toString()
+        var world = sharedPref.getString("world", "Empty").toString()
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -46,7 +45,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
 
                     floatingActionButtonPosition = FabPosition.End,
-                    floatingActionButton = { World_Button() },
+                    floatingActionButton = { World_Button(world) },
                     containerColor = MaterialTheme.colorScheme.background){
 
                     Greeting2(world)
@@ -59,19 +58,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun World_Button() {
+fun World_Button(world: String) {
     val context = LocalContext.current
     val array: Array<String> = context.resources.getStringArray(R.array.world_array)
-    var current_world=world
+    var currentWorld=world
 
     val builder: AlertDialog.Builder = AlertDialog.Builder(context)
     builder
         .setTitle("Choose world")
         .setPositiveButton("Confirm"){dialog, which ->
-            world = current_world
-            Toast.makeText(context, "Current world: $world", Toast.LENGTH_SHORT).show()}
+            var sharedPref = context.getSharedPreferences(context.resources.getString(R.string.world_file_key), Context.MODE_PRIVATE)
+            var edit = sharedPref.edit()
+            edit.putString("world",currentWorld)
+            Toast.makeText(context, "Current world: $currentWorld", Toast.LENGTH_SHORT).show()}
         .setNegativeButton("Cancel"){dialog, which -> Toast.makeText(context, "Current world: $world", Toast.LENGTH_SHORT).show()}
-        .setSingleChoiceItems(array,0,){ dialog, which -> current_world=array[which]}
+        .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
 
     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Top) {
         FloatingActionButton(
@@ -103,8 +104,9 @@ fun Greeting2(world: String) {
 
 @Composable
 fun GreetingPreview2() {
+    var world = "Crystal"
     ICATheme {
         Greeting2(world)
-        World_Button()
+        World_Button(world)
     }
 }
