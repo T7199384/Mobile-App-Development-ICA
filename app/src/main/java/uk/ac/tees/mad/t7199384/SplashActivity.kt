@@ -44,6 +44,9 @@ class SplashActivity : ComponentActivity() {
             }
         }
 
+        //TODO Copy dialog function into if statement and have the handler run in the confirm
+        //TODO Curly Brackets and if the sharedpreferences is saved, handler is in the else statement
+
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = Intent(this@SplashActivity,MainActivity::class.java)
             startActivity(intent)
