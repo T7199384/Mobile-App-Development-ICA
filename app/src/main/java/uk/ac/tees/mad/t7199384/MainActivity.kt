@@ -87,8 +87,9 @@ fun World_Button() {
 
 @Composable
 fun Greeting2(world: String) {
+    var worldGreeting by remember{mutableStateOf(world)}
     Text(
-        text = "Welcome to the $world marketboard!",
+        text = "Welcome to the $worldGreeting marketboard!",
         modifier = Modifier.fillMaxSize()
     )
 }
