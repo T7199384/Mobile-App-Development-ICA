@@ -34,10 +34,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 
-class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
+class TemplateActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        var sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        var sharedPref = this@TemplateActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
         var world = sharedPref.getString("world", "Empty").toString()
 
         sharedPref.registerOnSharedPreferenceChangeListener(this)
