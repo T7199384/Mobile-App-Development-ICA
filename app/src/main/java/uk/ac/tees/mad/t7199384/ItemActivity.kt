@@ -26,7 +26,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uk.ac.tees.mad.t7199384.models.api.Comments
 import uk.ac.tees.mad.t7199384.models.api.Item
 import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
@@ -64,28 +63,28 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 }
 
     private fun getItem(world: String, itemID: Int) {
-        val url = "$BASE_URL/$world/$itemID"
+        val url = BASE_URL
         val api = Retrofit.Builder()
             .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ItemAPI::class.java)
 
-        api.getItem().enqueue(object: Callback<List<Item>> {
+        api.getItem(world,itemID.toString()).enqueue(object: Callback<Item> {
             override fun onResponse(
-                call: Call<List<Item>>,
-                response: Response<List<Item>>
+                call: Call<Item>,
+                response: Response<Item>
             ) {
                 if (response.isSuccessful){
-                    response.body()?.let{
-                        for (comment in it){
-                            Log.i(TAG, "onResponse:${comment.listings}")
-                        }
-                    }
+                    Log.i(TAG, "listings received")
+                    Log.i(TAG, "onResponse:${response.body()}")
+                }
+                else{
+                    Log.i(TAG, "receive failed: ${response.code()} with $url")
                 }
             }
 
-            override fun onFailure(call: Call<List<Item>>, t: Throwable) {
+            override fun onFailure(call: Call<Item>, t: Throwable) {
                 Log.i(TAG,"onFailure: ${t.message}")
             }
 

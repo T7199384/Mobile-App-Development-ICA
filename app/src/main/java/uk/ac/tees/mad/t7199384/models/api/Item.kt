@@ -2,7 +2,7 @@ package uk.ac.tees.mad.t7199384.models.api
 
 data class Item (
     val itemID: Int,
-    val lastUploadTime: Int,
+    val lastUploadTime: Long,
     val listings: Array<Listing>,
 ) {
     override fun equals(other: Any?): Boolean {
@@ -20,7 +20,7 @@ data class Item (
 
     override fun hashCode(): Int {
         var result = itemID
-        result = 31 * result + lastUploadTime
+        result = 31 * result + lastUploadTime.hashCode()
         result = 31 * result + listings.contentHashCode()
         return result
     }
