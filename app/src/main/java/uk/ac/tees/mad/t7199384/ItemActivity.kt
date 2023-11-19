@@ -27,13 +27,14 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.t7199384.models.api.Comments
+import uk.ac.tees.mad.t7199384.models.api.Item
 import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 
 class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val BASE_URL = "https://jsonplaceholder.typicode.com/"
+    private val BASE_URL = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +55,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         WorldChangeButton(world = worldText)
                     }
                     Row(){
-                        getAllComments()
+                        getItem(world,4650)
                     }
 
             }
@@ -62,28 +63,29 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
     }
 }
 
-    private fun getAllComments() {
+    private fun getItem(world: String, itemID: Int) {
+        val url = "$BASE_URL/$world/$itemID"
         val api = Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ItemAPI::class.java)
 
-        api.getComments().enqueue(object: Callback<List<Comments>> {
+        api.getItem().enqueue(object: Callback<List<Item>> {
             override fun onResponse(
-                call: Call<List<Comments>>,
-                response: Response<List<Comments>>
+                call: Call<List<Item>>,
+                response: Response<List<Item>>
             ) {
                 if (response.isSuccessful){
                     response.body()?.let{
                         for (comment in it){
-                            Log.i(TAG, "onResponse:${comment.body}")
+                            Log.i(TAG, "onResponse:${comment.listings}")
                         }
                     }
                 }
             }
 
-            override fun onFailure(call: Call<List<Comments>>, t: Throwable) {
+            override fun onFailure(call: Call<List<Item>>, t: Throwable) {
                 Log.i(TAG,"onFailure: ${t.message}")
             }
 

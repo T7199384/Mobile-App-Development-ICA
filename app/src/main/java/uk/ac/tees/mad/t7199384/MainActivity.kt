@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
+import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 
 class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -51,7 +52,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     Row(Modifier.fillMaxWidth()){
                         Greeting2(worldText)
                         Spacer(Modifier.weight(1f,true).fillMaxWidth().background(MaterialTheme.colorScheme.background))
-                        World_Button(world = worldText)
+                        WorldChangeButton(world = worldText)
                     }
 
 
@@ -59,41 +60,6 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 }
-
-@Composable
-fun World_Button(world: String) {
-    val context = LocalContext.current
-    val array: Array<String> = context.resources.getStringArray(R.array.world_array)
-    var currentWorld=world
-
-    val builder: AlertDialog.Builder = AlertDialog.Builder(context)
-    builder
-        .setTitle("Choose world")
-        .setPositiveButton("Confirm"){dialog, which ->
-            var sharedPref = context.getSharedPreferences(context.resources.getString(R.string.world_file_key), Context.MODE_PRIVATE)
-            var edit = sharedPref.edit()
-            edit.putString("world",currentWorld)
-            edit.apply()
-            Toast.makeText(context, "Current world: $currentWorld", Toast.LENGTH_SHORT).show()}
-        .setNegativeButton("Cancel"){dialog, which -> Toast.makeText(context, "Current world: $world", Toast.LENGTH_SHORT).show()}
-        .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
-
-        ElevatedButton(
-            onClick = {
-                val dialog: AlertDialog = builder.create()
-                dialog.show()
-            },
-            contentPadding = PaddingValues(0.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.elevatedButtonColors(contentColor = Color.White),
-            modifier = Modifier
-                .size(50.dp)
-        ) {
-            Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray)
-        }
-
-}
-
 
 @Composable
 fun Greeting2(world: String) {
@@ -115,7 +81,7 @@ fun GreetingPreview2() {
             Row(Modifier.fillMaxWidth()){
                 Greeting2(world)
                 Spacer(Modifier.weight(1f,true).fillMaxWidth().background(MaterialTheme.colorScheme.background))
-                World_Button(world = "Crystal")
+                WorldChangeButton(world = "Crystal")
                 }
             }
         }

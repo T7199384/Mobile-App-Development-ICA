@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +46,7 @@ fun WorldChangeButton(world: String) {
         colors = ButtonDefaults.elevatedButtonColors(contentColor = Color.White),
         modifier = Modifier
             .size(50.dp)
+            .absoluteOffset( x=16.dp, y=16.dp)
     ) {
         Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray)
     }

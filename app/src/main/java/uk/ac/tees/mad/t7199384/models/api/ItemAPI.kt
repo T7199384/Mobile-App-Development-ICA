@@ -6,6 +6,6 @@ import retrofit2.http.GET
 interface ItemAPI{
 
     @GET("comments")
-    fun getComments(): Call<List<Comments>>
+    fun getItem(): Call<List<Item>>
 
 }
