@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,6 +15,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -40,16 +42,20 @@ fun WorldChangeButton(world: String) {
         .setNegativeButton("Cancel"){dialog, which -> ""}
         .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
 
-    IconButton(
+    IconButton( modifier=Modifier.size(80.dp),
         onClick = {
             val dialog: AlertDialog = builder.create()
             dialog.show()
         },
     ) {
         Box(modifier= Modifier
+            .aspectRatio(1f)
+            .size(80.dp)
             .background(Color.White, shape= CircleShape)
-            .fillMaxSize()){
-        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray,modifier=Modifier.size(60.dp).clip(CircleShape).padding(4.dp))
+            .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray,modifier=Modifier.clip(CircleShape).padding(4.dp))
         }
     }
 
