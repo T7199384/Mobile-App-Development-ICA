@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import retrofit2.Call
@@ -33,25 +32,29 @@ import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 
 class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val BASE_URL = "https://universalis.app/api/v2/"
+    private val BASEURL = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        var sharedPref = this@ItemActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        var world = sharedPref.getString("world", "Empty").toString()
+        val sharedPref = this@ItemActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        val world = sharedPref.getString("world", "Empty").toString()
 
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
-                var worldText by remember{mutableStateOf(world)}
+                val worldText by remember{mutableStateOf(world)}
 
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Row(Modifier.fillMaxWidth()){
-                        Greeting2(worldText)
-                        Spacer(Modifier.weight(1f,true).fillMaxWidth().background(MaterialTheme.colorScheme.background))
-                        WorldChangeButton(world = worldText)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                        Box(Modifier.fillMaxSize().weight(1f)){
+                            Greeting2(world)
+                            //WorldChangeButton(world = "Crystal")
+                        }
+                        Box(modifier = Modifier.fillMaxSize().weight(0.15f)){
+                            WorldChangeButton(world = worldText)
+                        }
                     }
                     Row(){
                         getItem(world,4650)
@@ -63,7 +66,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 }
 
     private fun getItem(world: String, itemID: Int) {
-        val url = BASE_URL
+        val url = BASEURL
         val api = Retrofit.Builder()
             .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create())
@@ -93,7 +96,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
 @Composable
 fun Greeting2(world: String) {
-    var worldGreeting by remember{mutableStateOf(world)}
+    val worldGreeting by remember{mutableStateOf(world)}
 
     Text(
         text = "Welcome to $worldGreeting's market!",
@@ -105,17 +108,21 @@ fun Greeting2(world: String) {
 
 @Composable
 fun GreetingPreview2() {
-    var world = "Crystal"
+    val world = "Crystal"
     ICATheme {
         Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-            Row(Modifier.fillMaxWidth()){
-                Greeting2(world)
-                Spacer(Modifier.weight(1f,true).fillMaxWidth().background(MaterialTheme.colorScheme.background))
-                WorldChangeButton(world = "Crystal")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                Box(Modifier.fillMaxSize().weight(1f)){
+                    Greeting2(world)
+                    //WorldChangeButton(world = "Crystal")
+                    }
+                Box(modifier = Modifier.fillMaxSize().weight(0.15f)){
+                    WorldChangeButton(world = "Crystal")
                 }
             }
         }
     }
+}
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         recreate()

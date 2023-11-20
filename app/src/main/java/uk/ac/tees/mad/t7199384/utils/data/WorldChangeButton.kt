@@ -2,16 +2,20 @@ package uk.ac.tees.mad.t7199384.utils.data
 
 import android.app.AlertDialog
 import android.content.Context
-import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -32,23 +36,21 @@ fun WorldChangeButton(world: String) {
             var edit = sharedPref.edit()
             edit.putString("world",currentWorld)
             edit.apply()
-            Toast.makeText(context, "Current world: $currentWorld", Toast.LENGTH_SHORT).show()}
-        .setNegativeButton("Cancel"){dialog, which -> Toast.makeText(context, "Current world: $world", Toast.LENGTH_SHORT).show()}
+        }
+        .setNegativeButton("Cancel"){dialog, which -> ""}
         .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
 
-    ElevatedButton(
+    IconButton(
         onClick = {
             val dialog: AlertDialog = builder.create()
             dialog.show()
         },
-        contentPadding = PaddingValues(0.dp),
-        shape = CircleShape,
-        colors = ButtonDefaults.elevatedButtonColors(contentColor = Color.White),
-        modifier = Modifier
-            .size(50.dp)
-            .absoluteOffset( x=16.dp, y=16.dp)
     ) {
-        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray)
+        Box(modifier= Modifier
+            .background(Color.White, shape= CircleShape)
+            .fillMaxSize()){
+        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray,modifier=Modifier.size(60.dp).clip(CircleShape).padding(4.dp))
+        }
     }
 
 }
