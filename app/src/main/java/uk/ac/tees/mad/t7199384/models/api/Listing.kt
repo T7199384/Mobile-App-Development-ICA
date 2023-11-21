@@ -1,5 +1,6 @@
 package uk.ac.tees.mad.t7199384.models.api
 
+
 data class Listing (
     val listReviewTime: Int,
     val pricePerUnit: Int,

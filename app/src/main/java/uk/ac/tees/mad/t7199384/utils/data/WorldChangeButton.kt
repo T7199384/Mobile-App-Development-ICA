@@ -55,7 +55,7 @@ fun WorldChangeButton(world: String) {
             .fillMaxSize(),
             contentAlignment = Alignment.Center
         ){
-        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray,modifier=Modifier.clip(CircleShape).padding(4.dp))
+        Icon(painterResource(R.drawable.world_icon), "Change World Server", tint= Color.DarkGray,modifier=Modifier.clip(CircleShape))
         }
     }
 
