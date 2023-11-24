@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,212 +41,74 @@ import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.models.api.Listing
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
+import kotlin.coroutines.suspendCoroutine
 
 class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val BASEURL = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPref = this@ItemActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        val world = sharedPref.getString("world", "Empty").toString()
-
-        sharedPref.registerOnSharedPreferenceChangeListener(this)
-
-
-
-        super.onCreate(savedInstanceState)
-        setContent {
-            ICATheme {
-                val worldText by remember{mutableStateOf(world)}
-
-                Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .weight(1f)){
-                            ItemDesc("Boiled Egg",4650,99,94,1,2)
-                            //WorldChangeButton(world = "Crystal")
-                        }
-                        Box(modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.15f)){
-                            WorldChangeButton(world = worldText)
-                        }
-                    }
-                    Row(){
-                        getItem(world,4650)
-                    }
-
-            }
-        }
-    }
-}
-
-    private fun getItem(world: String, itemID: Int) {
-        val url = BASEURL
-        val api = Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ItemAPI::class.java)
-
-        api.getItem(world,itemID.toString()).enqueue(object: Callback<Item> {
-            override fun onResponse(
-                call: Call<Item>,
-                response: Response<Item>
-            ) {
-                if (response.isSuccessful){
-                    Log.i(TAG, "listings received")
-                    Log.i(TAG, "onResponse:${response.body()}")
-                }
-                else{
-                    Log.i(TAG, "receive failed: ${response.code()} with $url")
-                }
-            }
-
-            override fun onFailure(call: Call<Item>, t: Throwable) {
-                Log.i(TAG,"onFailure: ${t.message}")
-            }
-
-        })
-    }
-
-@Composable
-fun ItemDesc(name: String, id: Int, priceHQ: Int, quantityHQ: Int, priceNQ: Int, quantityNQ: Int) {
-    val totalHQ=priceHQ*quantityHQ
-    val totalNQ=priceNQ*quantityNQ
-
-    Column(Modifier.padding(start = 5.dp)){
-        Text(
-            text = "$name       $id"
-             //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
+    val fakeData = Item(
+        itemID = 4650,
+        worldID = 40,
+        lastUploadTime = 1700361722705,
+        averagePrice=469.79114,
+        averagePriceNQ=444.14285,
+        averagePriceHQ=312.1,
+        listings = listOf(
+            Listing.NormalListing(
+                lastReviewTime=1700352444,
+                pricePerUnit=105,
+                quantity=99,
+                stainID=0,
+                creatorName="",
+                creatorID=null,
+                hq=false,
+                isCrafted=false,
+                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia=listOf(),
+                onMannequin=false,
+                retainerCity=4,
+                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName="ShrekOfCabbages",
+                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total=10395),
+            Listing.NormalListing(
+                lastReviewTime=1700352444,
+                pricePerUnit=151,
+                quantity=10,
+                stainID=0,
+                creatorName="",
+                creatorID=null,
+                hq=true,
+                isCrafted=false,
+                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia=listOf(),
+                onMannequin=false,
+                retainerCity=4,
+                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName="SoupSaiyan",
+                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total=1510),
+            Listing.NormalListing(
+                lastReviewTime=1700352444,
+                pricePerUnit=200,
+                quantity=99,
+                stainID=0,
+                creatorName="",
+                creatorID=null,
+                hq=false,
+                isCrafted=false,
+                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia=listOf(),
+                onMannequin=false,
+                retainerCity=4,
+                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName="AFrixFuzzer",
+                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total=19800)
         )
-        Row(){
-            Column() {
-                Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
-                Text(
-                    text = "$priceHQ X $quantityHQ Total: $totalHQ",
-                    style = TextStyle.Default.copy(fontSize = 14.sp)
-                )
-            }
-            Spacer(modifier = Modifier.padding(start=35.dp))
-            Column() {
-                Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
-                Text(
-                    text = "$priceNQ X $quantityNQ Total: $totalNQ",
-                    style = TextStyle.Default.copy(fontSize = 14.sp)
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-
-
-@Composable
-fun ItemPreview() {
-    ICATheme {
-        Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-            Column {
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Box(
-                        Modifier
-                            .height(55.dp)
-                            .weight(1f),
-                    contentAlignment= Alignment.CenterStart
-                    ) {
-                        ItemDesc("Boiled Egg",4650,99,94,1,2)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .height(50.dp)
-                            .weight(.15f)
-                    ) {
-                        WorldChangeButton(world = "Crystal")
-                    }
-                }
-                ListingPreview("Jenova")
-            }
-        }
-    }
-}
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        recreate()
-    }
-}
-@Composable
-fun ListingPreview(world: String) {
-
-    var serverWorld = world
-
-        val fakeData = Item(
-            itemID = 4650,
-            worldID = 40,
-            lastUploadTime = 1700361722705,
-            averagePrice=469.79114,
-            averagePriceNQ=444.14285,
-            averagePriceHQ=312.1,
-            minPrice=2,
-            minPriceNQ=2,
-            minPriceHQ=94,
-            listings = listOf(
-                Listing.NormalListing(
-                    lastReviewTime=1700352444,
-                    pricePerUnit=105,
-                    quantity=99,
-                    stainID=0,
-                    creatorName="",
-                    creatorID=null,
-                    hq=false,
-                    isCrafted=false,
-                    listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                    materia=listOf(),
-                    onMannequin=false,
-                    retainerCity=4,
-                    retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                    retainerName="ShrekOfCabbages",
-                    sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                    total=10395),
-                Listing.NormalListing(
-                    lastReviewTime=1700352444,
-                    pricePerUnit=151,
-                    quantity=10,
-                    stainID=0,
-                    creatorName="",
-                    creatorID=null,
-                    hq=true,
-                    isCrafted=false,
-                    listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                    materia=listOf(),
-                    onMannequin=false,
-                    retainerCity=4,
-                    retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                    retainerName="SoupSaiyan",
-                    sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                    total=1510),
-                Listing.NormalListing(
-                    lastReviewTime=1700352444,
-                    pricePerUnit=200,
-                    quantity=99,
-                    stainID=0,
-                    creatorName="",
-                    creatorID=null,
-                    hq=false,
-                    isCrafted=false,
-                    listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                    materia=listOf(),
-                    onMannequin=false,
-                    retainerCity=4,
-                    retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                    retainerName="AFrixFuzzer",
-                    sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                    total=19800)
-            )
-        )
+    )
 
     val fakeData2 = Item(
         itemID = 4650,
@@ -253,9 +116,6 @@ fun ListingPreview(world: String) {
         averagePrice=469.79114,
         averagePriceNQ=444.14285,
         averagePriceHQ=312.1,
-        minPrice=2,
-        minPriceNQ=2,
-        minPriceHQ=94,
         listings = listOf(
             Listing.WorldListing(
                 lastReviewTime = 1700693363,
@@ -320,12 +180,193 @@ fun ListingPreview(world: String) {
         )
     )
 
-    var averagePrice = fakeData2.averagePrice
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = this@ItemActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        val world = sharedPref.getString("world", "Empty").toString()
+
+        sharedPref.registerOnSharedPreferenceChangeListener(this)
+
+        val data: Item? = runBlocking {
+            getItem("world", 4650)
+        }
+
+        super.onCreate(savedInstanceState)
+        setContent {
+            ICATheme {
+                val worldText by remember{mutableStateOf(world)}
+
+                Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .weight(1f)){
+
+                            val cheapestListing= cheapestListing(fakeData2)
+                            ItemDesc("Boiled Egg",4650,cheapestListing[1],cheapestListing[2],cheapestListing[3],cheapestListing[4])
+                            //WorldChangeButton(world = "Crystal")
+                        }
+                        Box(modifier = Modifier
+                            .fillMaxSize()
+                            .weight(0.15f)){
+                            WorldChangeButton(world = worldText)
+                        }
+                    }
+                    Row(){
+
+                    }
+
+            }
+        }
+    }
+}
+
+    fun cheapestListing(listingsData: Item): List<Int?> {
+        var cheapHQ: Int? = null
+        var quantityHQ: Int? = null
+        var cheapNQ: Int? = null
+        var quantityNQ: Int? = null
+
+        for (listing in listingsData.listings) {
+            when (listing) {
+                is Listing.NormalListing -> {
+                    val currentPrice = listing.pricePerUnit
+                    if (cheapHQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && listing.hq) {
+                        cheapHQ = listing.pricePerUnit
+                        quantityHQ = listing.quantity
+                    }
+                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && !listing.hq) {
+                        cheapNQ = listing.pricePerUnit
+                        quantityNQ = listing.quantity
+                    }
+                }
+
+                is Listing.WorldListing -> {
+
+                    val currentPrice = listing.pricePerUnit
+                    if (cheapHQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && listing.hq) {
+                        cheapHQ = listing.pricePerUnit
+                        quantityHQ = listing.quantity
+                    }
+                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityNQ!! && !listing.hq) {
+                        cheapNQ = listing.pricePerUnit
+                        quantityNQ = listing.quantity
+                    }
+                }
+            }
+        }
+
+        return listOf(cheapHQ, quantityHQ, cheapNQ, quantityNQ)
+    }
+    private suspend fun getItem(world: String, itemID: Int): Item? {
+        return suspendCoroutine { continuation -> val url = BASEURL
+            val api = Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ItemAPI::class.java)
+
+            api.getItem(world,itemID.toString()).enqueue(object: Callback<Item> {
+                override fun onResponse(
+                    call: Call<Item>,
+                    response: Response<Item>
+                ) {
+                    if (response.isSuccessful){
+                        Log.i(TAG, "listings received")
+                        Log.i(TAG, "onResponse:${response.body()}")
+                    }
+                    else{
+                        Log.i(TAG, "receive failed: ${response.code()} with $url")
+                    }
+                }
+
+                override fun onFailure(call: Call<Item>, t: Throwable) {
+                    Log.i(TAG,"onFailure: ${t.message}")
+                }
+
+            }) }
+
+    }
+
+@Composable
+fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: Int?, quantityNQ: Int?) {
+    val totalHQ= priceHQ?.times(quantityHQ!!)
+    val totalNQ= priceNQ?.times(quantityNQ!!)
+
+    Column(Modifier.padding(start = 5.dp)){
+        Text(
+            text = "$name       $id"
+             //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
+        )
+        Row(){
+            Column() {
+                Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                Text(
+                    text = "$priceHQ X $quantityHQ Total: $totalHQ",
+                    style = TextStyle.Default.copy(fontSize = 14.sp)
+                )
+            }
+            Spacer(modifier = Modifier.padding(start=35.dp))
+            Column() {
+                Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                Text(
+                    text = "$priceNQ X $quantityNQ Total: $totalNQ",
+                    style = TextStyle.Default.copy(fontSize = 14.sp)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+
+
+@Composable
+fun ItemPreview() {
+    ICATheme {
+        Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
+            Column {
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                    Box(
+                        Modifier
+                            .height(55.dp)
+                            .weight(1f),
+                    contentAlignment= Alignment.CenterStart
+                    ) {
+                        val cheapestListing= cheapestListing(fakeData2)
+                        ItemDesc("Boiled Egg",4650,cheapestListing[1],cheapestListing[2],cheapestListing[3],cheapestListing[4])
+                    }
+                    Box(
+                        modifier = Modifier
+                            .height(50.dp)
+                            .weight(.15f)
+                    ) {
+                        WorldChangeButton(world = "Crystal")
+                    }
+                }
+                ListingPreview("Jenova",fakeData2)
+            }
+        }
+    }
+}
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        recreate()
+    }
+}
+@Composable
+fun ListingPreview(world: String, data: Item) {
+
+    var serverWorld = world
+
+
+
+    var averagePrice = data.averagePrice
 
     var listingsHQ: List<Listing> = emptyList()
     var listingsNQ: List<Listing> = emptyList()
 
-    for(item in fakeData2.listings){
+    for(item in data.listings){
         when (item){ is Listing.NormalListing ->{
             if(item.hq){
                 listingsHQ=listingsHQ.plus(item)
@@ -338,11 +379,11 @@ fun ListingPreview(world: String) {
             is Listing.WorldListing -> {
                 if(item.hq){
                     listingsHQ=listingsHQ.plus(item)
-                    averagePrice=fakeData2.averagePriceHQ
+                    averagePrice=data.averagePriceHQ
                 }
                 else{
                     listingsNQ=listingsNQ.plus(item)
-                    averagePrice=fakeData2.averagePriceNQ
+                    averagePrice=data.averagePriceNQ
                 }
             }
         }
