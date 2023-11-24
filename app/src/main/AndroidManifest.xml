@@ -29,6 +29,9 @@
             android:name=".MainActivity"
             android:theme="@style/Theme.ICA">
         </activity>
+        <activity android:name=".SplashActivity"
+            android:theme="@style/Theme.ICA">
+        </activity>
     </application>
 
 </manifest>

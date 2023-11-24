@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +20,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,8 +49,10 @@ import kotlin.coroutines.suspendCoroutine
 
 class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val BASEURL = "https://universalis.app/api/v2/"
+    private val BASEURL: String = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
+
+    private var hqflag: Boolean = true
 
     val fakeData = Item(
         itemID = 4650,
@@ -110,7 +116,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         )
     )
 
-    val fakeData2 = Item(
+    private val fakeData2 = Item(
         itemID = 4650,
         lastUploadTime = 1700361722705,
         averagePrice=469.79114,
@@ -186,42 +192,55 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
-        val data: Item? = runBlocking {
-            getItem("world", 4650)
-        }
-
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
                 val worldText by remember{mutableStateOf(world)}
 
+                var data: Item? = fakeData2
+
+                LaunchedEffect(true) {
+                    data = getItem("world", 4650)
+                }
+
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .weight(1f)){
-
-                            val cheapestListing= cheapestListing(fakeData2)
-                            ItemDesc("Boiled Egg",4650,cheapestListing[1],cheapestListing[2],cheapestListing[3],cheapestListing[4])
-                            //WorldChangeButton(world = "Crystal")
+                    Column {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Box(
+                                Modifier
+                                    .height(55.dp)
+                                    .weight(1f),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                val cheapestListing = cheapestListing(fakeData2!!)
+                                ItemDesc(
+                                    "Boiled Egg",
+                                    4650,
+                                    cheapestListing[0],
+                                    cheapestListing[1],
+                                    cheapestListing[2],
+                                    cheapestListing[3]
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .height(50.dp)
+                                    .weight(.15f)
+                            ) {
+                                WorldChangeButton(world = worldText)
+                            }
                         }
-                        Box(modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.15f)){
-                            WorldChangeButton(world = worldText)
-                        }
+                            QualityButton(true)
+                            Listing(worldText, fakeData2!!, true)
                     }
-                    Row(){
-
-                    }
-
             }
         }
     }
 }
 
-    fun cheapestListing(listingsData: Item): List<Int?> {
+private fun cheapestListing(listingsData: Item): List<Int?> {
         var cheapHQ: Int? = null
         var quantityHQ: Int? = null
         var cheapNQ: Int? = null
@@ -235,7 +254,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         cheapHQ = listing.pricePerUnit
                         quantityHQ = listing.quantity
                     }
-                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && !listing.hq) {
+                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ && !listing.hq) {
                         cheapNQ = listing.pricePerUnit
                         quantityNQ = listing.quantity
                     }
@@ -255,10 +274,9 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
             }
         }
-
         return listOf(cheapHQ, quantityHQ, cheapNQ, quantityNQ)
-    }
-    private suspend fun getItem(world: String, itemID: Int): Item? {
+}
+private suspend fun getItem(world: String, itemID: Int): Item? {
         return suspendCoroutine { continuation -> val url = BASEURL
             val api = Retrofit.Builder()
                 .baseUrl(url)
@@ -283,10 +301,8 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 override fun onFailure(call: Call<Item>, t: Throwable) {
                     Log.i(TAG,"onFailure: ${t.message}")
                 }
-
             }) }
-
-    }
+}
 
 @Composable
 fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: Int?, quantityNQ: Int?) {
@@ -298,8 +314,8 @@ fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: In
             text = "$name       $id"
              //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
         )
-        Row(){
-            Column() {
+        Row{
+            Column {
                 Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                 Text(
                     text = "$priceHQ X $quantityHQ Total: $totalHQ",
@@ -307,7 +323,7 @@ fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: In
                 )
             }
             Spacer(modifier = Modifier.padding(start=35.dp))
-            Column() {
+            Column {
                 Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                 Text(
                     text = "$priceNQ X $quantityNQ Total: $totalNQ",
@@ -317,6 +333,106 @@ fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: In
         }
     }
 }
+
+@Composable
+fun QualityButton(boolean: Boolean){
+        Row(modifier=Modifier
+            .height(50.dp)
+            .fillMaxWidth()) {
+            Column(modifier = Modifier
+                .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                TextButton(onClick = {qualityChange(true)},
+                    modifier = Modifier.fillMaxSize()
+                        .background(if (boolean) Color.Gray else Color.Transparent))
+                    {Text("High Quality")}
+            }
+            Column(modifier = Modifier
+                .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                TextButton(onClick = {qualityChange(false)},
+                    modifier = Modifier.fillMaxSize()
+                        .background(if (!boolean) Color.Gray else Color.Transparent))
+                {Text("Normal Quality")}
+            }
+        }
+}
+
+private fun qualityChange(boolean: Boolean){
+    hqflag=boolean
+    recreate()
+}
+@Composable
+fun Listing(world: String, data: Item, hqflag: Boolean) {
+
+
+    var averagePrice = data.averagePrice
+
+        var listingsHQ: List<Listing> = emptyList()
+        var listingsNQ: List<Listing> = emptyList()
+
+        for(item in data.listings){
+            when (item){ is Listing.NormalListing ->{
+                if(item.hq){
+                    listingsHQ=listingsHQ.plus(item)
+                }
+                else{
+                    listingsNQ=listingsNQ.plus(item)
+                }
+            }
+
+                is Listing.WorldListing -> {
+                    if(item.hq){
+                        listingsHQ=listingsHQ.plus(item)
+                        averagePrice=data.averagePriceHQ
+                    }
+                    else{
+                        listingsNQ=listingsNQ.plus(item)
+                        averagePrice=data.averagePriceNQ
+                    }
+                }
+            }
+}
+
+        var viewListings: List<Listing> = listingsNQ
+
+        if(hqflag){
+            viewListings=listingsHQ
+        }
+
+        Row {
+            LazyColumn {
+                items(viewListings.size) { index ->
+                    val listing=viewListings[index]
+
+                    Column(modifier= Modifier
+                        .fillMaxWidth()
+                        .padding(start = 3.dp))
+                    {
+                        Spacer(modifier = Modifier.padding(1.dp))
+                        when(listing) {
+                            is Listing.NormalListing -> {
+                                val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
+                                Text(textAlign= TextAlign.Center,
+                                    text=
+                                    "$world ${listing.pricePerUnit}G " +
+                                            "X ${listing.quantity} Total: ${listing.total} $diff% " +
+                                            "  ${listing.retainerName}")
+                            }
+
+                            is Listing.WorldListing -> {
+                                val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
+                                Text(textAlign= TextAlign.Center,
+                                    text=
+                                    "${listing.worldName} ${listing.pricePerUnit}G " +
+                                            "X ${listing.quantity} Total: ${listing.total} $diff% " +
+                                            "  ${listing.retainerName}")
+                            }
+                        }
+                    } } }
+        }
+    }
+
 
 @Preview(showBackground = true)
 
@@ -333,8 +449,7 @@ fun ItemPreview() {
                             .weight(1f),
                     contentAlignment= Alignment.CenterStart
                     ) {
-                        val cheapestListing= cheapestListing(fakeData2)
-                        ItemDesc("Boiled Egg",4650,cheapestListing[1],cheapestListing[2],cheapestListing[3],cheapestListing[4])
+                        ItemDesc("Boiled Egg",4650,5,80,2,40)
                     }
                     Box(
                         modifier = Modifier
@@ -344,100 +459,16 @@ fun ItemPreview() {
                         WorldChangeButton(world = "Crystal")
                     }
                 }
-                ListingPreview("Jenova",fakeData2)
+                        QualityButton(false)
+                        Listing("Jenova", fakeData2, false)
             }
         }
     }
 }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         recreate()
     }
 }
-@Composable
-fun ListingPreview(world: String, data: Item) {
-
-    var serverWorld = world
 
 
-
-    var averagePrice = data.averagePrice
-
-    var listingsHQ: List<Listing> = emptyList()
-    var listingsNQ: List<Listing> = emptyList()
-
-    for(item in data.listings){
-        when (item){ is Listing.NormalListing ->{
-            if(item.hq){
-                listingsHQ=listingsHQ.plus(item)
-            }
-            else{
-                listingsNQ=listingsNQ.plus(item)
-            }
-        }
-
-            is Listing.WorldListing -> {
-                if(item.hq){
-                    listingsHQ=listingsHQ.plus(item)
-                    averagePrice=data.averagePriceHQ
-                }
-                else{
-                    listingsNQ=listingsNQ.plus(item)
-                    averagePrice=data.averagePriceNQ
-                }
-            }
-        }
-    }
-
-    var viewListings: List<Listing> = listingsNQ
-
-    val hqflag=false
-    if(hqflag){
-        viewListings=listingsHQ
-    }
-
-    Row() {
-        Column(modifier = Modifier
-            .padding(4.dp)
-            .weight(1f),horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "High Quality")
-        }
-        Column(modifier = Modifier
-            .padding(4.dp)
-            .weight(1f),horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Normal Quality")
-        }
-    }
-    Row() {
-        LazyColumn() {
-            items(viewListings.size) { index ->
-                val listing=viewListings[index]
-
-                Column(modifier= Modifier
-                    .fillMaxWidth()
-                    .padding(start = 3.dp))
-                {
-                    Spacer(modifier = Modifier.padding(1.dp))
-                    when(listing) {
-                        is Listing.NormalListing -> {
-                            val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
-                            Text(textAlign= TextAlign.Center,
-                                text=
-                                "$serverWorld ${listing.pricePerUnit}G " +
-                                        "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                        "  ${listing.retainerName}")
-                        }
-
-                        is Listing.WorldListing -> {
-                            val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
-                            Text(textAlign= TextAlign.Center,
-                                text=
-                                "${listing.worldName} ${listing.pricePerUnit}G " +
-                                        "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                        "  ${listing.retainerName}")
-                        }
-                    }
-            } } }
-    }
-}
 
