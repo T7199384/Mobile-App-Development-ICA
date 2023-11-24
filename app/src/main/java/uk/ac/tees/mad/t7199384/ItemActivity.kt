@@ -25,9 +25,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -115,10 +117,29 @@ fun ItemDesc(name: String, id: Int, priceHQ: Int, quantityHQ: Int, priceNQ: Int,
     val totalHQ=priceHQ*quantityHQ
     val totalNQ=priceNQ*quantityNQ
 
-    Text(
-        text = " $name       $id\n HQ: " +
-                "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
-    )
+    Column(Modifier.padding(start = 5.dp)){
+        Text(
+            text = "$name       $id"
+             //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
+        )
+        Row(){
+            Column() {
+                Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                Text(
+                    text = "$priceHQ X $quantityHQ Total: $totalHQ",
+                    style = TextStyle.Default.copy(fontSize = 14.sp)
+                )
+            }
+            Spacer(modifier = Modifier.padding(start=35.dp))
+            Column() {
+                Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                Text(
+                    text = "$priceNQ X $quantityNQ Total: $totalNQ",
+                    style = TextStyle.Default.copy(fontSize = 14.sp)
+                )
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -132,7 +153,7 @@ fun ItemPreview() {
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Box(
                         Modifier
-                            .height(50.dp)
+                            .height(55.dp)
                             .weight(1f),
                     contentAlignment= Alignment.CenterStart
                     ) {
@@ -165,6 +186,12 @@ fun ListingPreview(world: String) {
             itemID = 4650,
             worldID = 40,
             lastUploadTime = 1700361722705,
+            averagePrice=469.79114,
+            averagePriceNQ=444.14285,
+            averagePriceHQ=312.1,
+            minPrice=2,
+            minPriceNQ=2,
+            minPriceHQ=94,
             listings = listOf(
                 Listing.NormalListing(
                     lastReviewTime=1700352444,
@@ -223,6 +250,12 @@ fun ListingPreview(world: String) {
     val fakeData2 = Item(
         itemID = 4650,
         lastUploadTime = 1700361722705,
+        averagePrice=469.79114,
+        averagePriceNQ=444.14285,
+        averagePriceHQ=312.1,
+        minPrice=2,
+        minPriceNQ=2,
+        minPriceHQ=94,
         listings = listOf(
             Listing.WorldListing(
                 lastReviewTime = 1700693363,
@@ -287,6 +320,8 @@ fun ListingPreview(world: String) {
         )
     )
 
+    var averagePrice = fakeData2.averagePrice
+
     var listingsHQ: List<Listing> = emptyList()
     var listingsNQ: List<Listing> = emptyList()
 
@@ -303,9 +338,11 @@ fun ListingPreview(world: String) {
             is Listing.WorldListing -> {
                 if(item.hq){
                     listingsHQ=listingsHQ.plus(item)
+                    averagePrice=fakeData2.averagePriceHQ
                 }
                 else{
                     listingsNQ=listingsNQ.plus(item)
+                    averagePrice=fakeData2.averagePriceNQ
                 }
             }
         }
@@ -334,23 +371,28 @@ fun ListingPreview(world: String) {
         LazyColumn() {
             items(viewListings.size) { index ->
                 val listing=viewListings[index]
-                Column(modifier=Modifier.fillMaxWidth().padding(start=3.dp))
+
+                Column(modifier= Modifier
+                    .fillMaxWidth()
+                    .padding(start = 3.dp))
                 {
                     Spacer(modifier = Modifier.padding(1.dp))
                     when(listing) {
                         is Listing.NormalListing -> {
+                            val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
                             Text(textAlign= TextAlign.Center,
                                 text=
-                                "$serverWorld ${listing.pricePerUnit} GIL " +
-                                        "X ${listing.quantity} - ${listing.total}" +
+                                "$serverWorld ${listing.pricePerUnit}G " +
+                                        "X ${listing.quantity} Total: ${listing.total} $diff% " +
                                         "  ${listing.retainerName}")
                         }
 
                         is Listing.WorldListing -> {
+                            val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
                             Text(textAlign= TextAlign.Center,
                                 text=
-                                "${listing.worldName} ${listing.pricePerUnit} GIL " +
-                                        "X ${listing.quantity} - ${listing.total}" +
+                                "${listing.worldName} ${listing.pricePerUnit}G " +
+                                        "X ${listing.quantity} Total: ${listing.total} $diff% " +
                                         "  ${listing.retainerName}")
                         }
                     }
