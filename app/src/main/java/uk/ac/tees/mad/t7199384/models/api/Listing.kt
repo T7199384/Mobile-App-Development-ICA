@@ -44,6 +44,6 @@ sealed class Listing {
         val retainerID: String,
         val retainerName: String,
         val sellerID: String,
-        val total: Int
+        var total: Int
     ) :Listing()
 }

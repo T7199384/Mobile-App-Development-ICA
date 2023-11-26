@@ -17,12 +17,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,9 +48,12 @@ import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.models.api.Listing
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
+import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
+import uk.ac.tees.mad.t7199384.models.api.fakeWorldData
+
+class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val BASEURL: String = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
@@ -61,70 +65,73 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         itemID = 4650,
         worldID = 40,
         lastUploadTime = 1700361722705,
-        averagePrice=469.79114,
-        averagePriceNQ=444.14285,
-        averagePriceHQ=312.1,
+        averagePrice = 469.79114,
+        averagePriceNQ = 444.14285,
+        averagePriceHQ = 312.1,
         listings = listOf(
             Listing.NormalListing(
-                lastReviewTime=1700352444,
-                pricePerUnit=105,
-                quantity=99,
-                stainID=0,
-                creatorName="",
-                creatorID=null,
-                hq=false,
-                isCrafted=false,
-                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia=listOf(),
-                onMannequin=false,
-                retainerCity=4,
-                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName="ShrekOfCabbages",
-                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total=10395),
+                lastReviewTime = 1700352444,
+                pricePerUnit = 105,
+                quantity = 99,
+                stainID = 0,
+                creatorName = "",
+                creatorID = null,
+                hq = false,
+                isCrafted = false,
+                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia = listOf(),
+                onMannequin = false,
+                retainerCity = 4,
+                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName = "ShrekOfCabbages",
+                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total = 10395
+            ),
             Listing.NormalListing(
-                lastReviewTime=1700352444,
-                pricePerUnit=151,
-                quantity=10,
-                stainID=0,
-                creatorName="",
-                creatorID=null,
-                hq=true,
-                isCrafted=false,
-                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia=listOf(),
-                onMannequin=false,
-                retainerCity=4,
-                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName="SoupSaiyan",
-                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total=1510),
+                lastReviewTime = 1700352444,
+                pricePerUnit = 151,
+                quantity = 10,
+                stainID = 0,
+                creatorName = "",
+                creatorID = null,
+                hq = true,
+                isCrafted = false,
+                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia = listOf(),
+                onMannequin = false,
+                retainerCity = 4,
+                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName = "SoupSaiyan",
+                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total = 1510
+            ),
             Listing.NormalListing(
-                lastReviewTime=1700352444,
-                pricePerUnit=200,
-                quantity=99,
-                stainID=0,
-                creatorName="",
-                creatorID=null,
-                hq=false,
-                isCrafted=false,
-                listingID="ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia=listOf(),
-                onMannequin=false,
-                retainerCity=4,
-                retainerID="b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName="AFrixFuzzer",
-                sellerID="1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total=19800)
+                lastReviewTime = 1700352444,
+                pricePerUnit = 200,
+                quantity = 99,
+                stainID = 0,
+                creatorName = "",
+                creatorID = null,
+                hq = false,
+                isCrafted = false,
+                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
+                materia = listOf(),
+                onMannequin = false,
+                retainerCity = 4,
+                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
+                retainerName = "AFrixFuzzer",
+                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
+                total = 19800
+            )
         )
     )
 
     private val fakeData2 = Item(
         itemID = 4650,
         lastUploadTime = 1700361722705,
-        averagePrice=469.79114,
-        averagePriceNQ=444.14285,
-        averagePriceHQ=312.1,
+        averagePrice = 469.79114,
+        averagePriceNQ = 444.14285,
+        averagePriceHQ = 312.1,
         listings = listOf(
             Listing.WorldListing(
                 lastReviewTime = 1700693363,
@@ -189,8 +196,13 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         )
     )
 
+    val fakeWorldData: Item = fakeWorldData()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPref = this@ItemActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        val sharedPref = this@ItemActivity.getSharedPreferences(
+            getString(R.string.world_file_key),
+            Context.MODE_PRIVATE
+        )
         val world = sharedPref.getString("world", "Empty").toString()
 
         sharedPref.registerOnSharedPreferenceChangeListener(this)
@@ -198,48 +210,70 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
-                val worldText by remember{mutableStateOf(world)}
+                val worldText by remember { mutableStateOf(world) }
                 val hqState = rememberUpdatedState(newValue = (hqflag))
-                //var data: Item? = getItem("world", 4650)
+                /*
+                                val coroutineScope = rememberCoroutineScope()
 
-                Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Column {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Box(
-                                Modifier
-                                    .height(55.dp)
-                                    .weight(1f),
-                                contentAlignment = Alignment.CenterStart
+                                // Use remember to hold the state of your data
+                                var data by remember { mutableStateOf<Item?>(null) }
+
+                                // Trigger the item fetch when needed (e.g., on composition)
+                                DisposableEffect(key1 = Unit) {
+                                    coroutineScope.launch {
+                                        val result = getItem(world, 4650)
+
+                                        data = result
+                                    }
+                                    onDispose {}
+                                }
+                */
+                var data = fakeWorldData
+                if (data == null) {
+                    CircularProgressIndicator()
+                } else {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Column {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                val cheapestListing = cheapestListing(fakeData2!!)
-                                ItemDesc(
-                                    "Boiled Egg",
-                                    4650,
-                                    cheapestListing[0],
-                                    cheapestListing[1],
-                                    cheapestListing[2],
-                                    cheapestListing[3]
-                                )
+                                Box(
+                                    Modifier
+                                        .height(55.dp)
+                                        .weight(1f),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    val cheapestListing = cheapestListing(data!!)
+                                    ItemDesc(
+                                        "Boiled Egg",
+                                        4650,
+                                        cheapestListing[0],
+                                        cheapestListing[1],
+                                        cheapestListing[2],
+                                        cheapestListing[3]
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .height(50.dp)
+                                        .weight(.15f)
+                                ) {
+                                    WorldChangeButton(world = worldText)
+                                }
                             }
-                            Box(
-                                modifier = Modifier
-                                    .height(50.dp)
-                                    .weight(.15f)
-                            ) {
-                                WorldChangeButton(world = worldText)
-                            }
-                        }
                             QualityButton(hqState.value)
-                            Listing(worldText, fakeData2, hqState.value)
+                            Listing(worldText, data!!, hqState.value)
+                        }
                     }
+                }
             }
         }
     }
-}
 
-private fun cheapestListing(listingsData: Item): List<Int?> {
+    private fun cheapestListing(listingsData: Item): List<Int?> {
         var cheapHQ: Int? = null
         var quantityHQ: Int? = null
         var cheapNQ: Int? = null
@@ -274,198 +308,241 @@ private fun cheapestListing(listingsData: Item): List<Int?> {
             }
         }
         return listOf(cheapHQ, quantityHQ, cheapNQ, quantityNQ)
-}
-private suspend fun getItem(world: String, itemID: Int): Item? {
-        return suspendCoroutine { continuation -> val url = BASEURL
-            val api = Retrofit.Builder()
-                .baseUrl(url)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(ItemAPI::class.java)
+    }
 
-            api.getItem(world,itemID.toString()).enqueue(object: Callback<Item> {
-                override fun onResponse(
-                    call: Call<Item>,
-                    response: Response<Item>
-                ) {
-                    if (response.isSuccessful){
+    private suspend fun getItem(world: String, itemID: Int): Item? {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+
+        val url = BASEURL
+        val api = Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ItemAPI::class.java)
+
+        return suspendCoroutine { continuation ->
+            api.getItem(world, itemID.toString()).enqueue(object : Callback<Item> {
+                override fun onResponse(call: Call<Item>, response: Response<Item>) {
+                    if (response.isSuccessful) {
                         Log.i(TAG, "listings received")
                         Log.i(TAG, "onResponse:${response.body()}")
-                    }
-                    else{
+                        continuation.resume(response.body())
+                    } else {
                         Log.i(TAG, "receive failed: ${response.code()} with $url")
+                        Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                        continuation.resume(null)
                     }
                 }
 
                 override fun onFailure(call: Call<Item>, t: Throwable) {
-                    Log.i(TAG,"onFailure: ${t.message}")
+                    Log.i(TAG, "onFailure: ${t.message}")
+                    continuation.resume(null)
                 }
-            }) }
-}
+            })
+        }
+    }
 
-@Composable
-fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: Int?, quantityNQ: Int?) {
-    val totalHQ= priceHQ?.times(quantityHQ!!)
-    val totalNQ= priceNQ?.times(quantityNQ!!)
+    @Composable
+    fun ItemDesc(
+        name: String,
+        id: Int,
+        priceHQ: Int?,
+        quantityHQ: Int?,
+        priceNQ: Int?,
+        quantityNQ: Int?
+    ) {
+        val totalHQ = priceHQ?.times(quantityHQ!!)
+        val totalNQ = priceNQ?.times(quantityNQ!!)
 
-    Column(Modifier.padding(start = 5.dp)){
-        Text(
-            text = "$name       $id"
-             //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
-        )
-        Row{
-            Column {
-                Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
-                Text(
-                    text = "$priceHQ X $quantityHQ Total: $totalHQ",
-                    style = TextStyle.Default.copy(fontSize = 14.sp)
-                )
-            }
-            Spacer(modifier = Modifier.padding(start=35.dp))
-            Column {
-                Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
-                Text(
-                    text = "$priceNQ X $quantityNQ Total: $totalNQ",
-                    style = TextStyle.Default.copy(fontSize = 14.sp)
-                )
+        Column(Modifier.padding(start = 5.dp)) {
+            Text(
+                text = "$name       $id"
+                //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
+            )
+            Row {
+                Column {
+                    Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                    Text(
+                        text = "$priceHQ X $quantityHQ Total: $totalHQ",
+                        style = TextStyle.Default.copy(fontSize = 14.sp)
+                    )
+                }
+                Spacer(modifier = Modifier.padding(start = 35.dp))
+                Column {
+                    Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
+                    Text(
+                        text = "$priceNQ X $quantityNQ Total: $totalNQ",
+                        style = TextStyle.Default.copy(fontSize = 14.sp)
+                    )
+                }
             }
         }
     }
-}
 
-@Composable
-fun QualityButton(boolean: Boolean){
-        Row(modifier= Modifier
-            .height(50.dp)
-            .fillMaxWidth()) {
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                TextButton(onClick = {qualityChange(true)},
+    @Composable
+    fun QualityButton(boolean: Boolean) {
+        Row(
+            modifier = Modifier
+                .height(50.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TextButton(
+                    onClick = { qualityChange(true) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(if (boolean) Color.Gray else Color.Transparent))
-                    {Text("High Quality")}
+                        .background(if (boolean) Color.Gray else Color.Transparent)
+                )
+                { Text("High Quality") }
             }
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                TextButton(onClick = {qualityChange(false)},
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TextButton(
+                    onClick = { qualityChange(false) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(if (!boolean) Color.Gray else Color.Transparent))
-                {Text("Normal Quality")}
+                        .background(if (!boolean) Color.Gray else Color.Transparent)
+                )
+                { Text("Normal Quality") }
             }
         }
-}
+    }
 
-private fun qualityChange(boolean: Boolean){
-    hqflag=boolean
-}
-@Composable
-fun Listing(world: String, data: Item, hqflag: Boolean) {
+    private fun qualityChange(boolean: Boolean) {
+        hqflag = boolean
+    }
+
+    @Composable
+    fun Listing(world: String, data: Item, hqflag: Boolean) {
 
 
-    var averagePrice = data.averagePrice
+        var averagePrice = data.averagePrice
 
         var listingsHQ: List<Listing> = emptyList()
         var listingsNQ: List<Listing> = emptyList()
 
-        for(item in data.listings){
-            when (item){ is Listing.NormalListing ->{
-                if(item.hq){
-                    listingsHQ=listingsHQ.plus(item)
+        for (item in data.listings) {
+            when (item) {
+                is Listing.NormalListing -> {
+                    if (item.hq) {
+                        listingsHQ = listingsHQ.plus(item)
+                    } else {
+                        listingsNQ = listingsNQ.plus(item)
+                    }
                 }
-                else{
-                    listingsNQ=listingsNQ.plus(item)
-                }
-            }
 
                 is Listing.WorldListing -> {
-                    if(item.hq){
-                        listingsHQ=listingsHQ.plus(item)
-                        averagePrice=data.averagePriceHQ
-                    }
-                    else{
-                        listingsNQ=listingsNQ.plus(item)
-                        averagePrice=data.averagePriceNQ
+                    if (item.hq) {
+                        listingsHQ = listingsHQ.plus(item)
+                        averagePrice = data.averagePriceHQ
+                    } else {
+                        listingsNQ = listingsNQ.plus(item)
+                        averagePrice = data.averagePriceNQ
                     }
                 }
             }
-}
+        }
 
         var viewListings: List<Listing> = listingsNQ
 
-        if(hqflag){
-            viewListings=listingsHQ
+        if (hqflag) {
+            viewListings = listingsHQ
         }
 
         Row {
             LazyColumn {
                 items(viewListings.size) { index ->
-                    val listing=viewListings[index]
+                    val listing = viewListings[index]
 
-                    Column(modifier= Modifier
-                        .fillMaxWidth()
-                        .padding(start = 3.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 3.dp)
+                    )
                     {
                         Spacer(modifier = Modifier.padding(1.dp))
-                        when(listing) {
+                        when (listing) {
                             is Listing.NormalListing -> {
-                                val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
-                                Text(textAlign= TextAlign.Center,
-                                    text=
+                                val diff = String.format(
+                                    "%.2f",
+                                    (listing.pricePerUnit - averagePrice) / averagePrice * 100.0
+                                )
+                                Text(
+                                    textAlign = TextAlign.Center,
+                                    text =
                                     "$world ${listing.pricePerUnit}G " +
                                             "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                            "  ${listing.retainerName}")
+                                            "  ${listing.retainerName}"
+                                )
                             }
 
                             is Listing.WorldListing -> {
-                                val diff = String.format("%.2f",(listing.pricePerUnit-averagePrice)/averagePrice*100.0)
-                                Text(textAlign= TextAlign.Center,
-                                    text=
+                                val diff = String.format(
+                                    "%.2f",
+                                    (listing.pricePerUnit - averagePrice) / averagePrice * 100.0
+                                )
+                                Text(
+                                    textAlign = TextAlign.Center,
+                                    text =
                                     "${listing.worldName} ${listing.pricePerUnit}G " +
                                             "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                            "  ${listing.retainerName}")
+                                            "  ${listing.retainerName}"
+                                )
                             }
                         }
-                    } } }
-        }
-    }
-
-
-@Preview(showBackground = true)
-
-
-@Composable
-fun ItemPreview() {
-    ICATheme {
-        Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-            Column {
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Box(
-                        Modifier
-                            .height(55.dp)
-                            .weight(1f),
-                    contentAlignment= Alignment.CenterStart
-                    ) {
-                        ItemDesc("Boiled Egg",4650,5,80,2,40)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .height(50.dp)
-                            .weight(.15f)
-                    ) {
-                        WorldChangeButton(world = "Crystal")
                     }
                 }
-                        QualityButton(false)
-                        Listing("Jenova", fakeData2, false)
             }
         }
     }
-}
-override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+
+
+    @Preview(showBackground = true)
+
+
+    @Composable
+    fun ItemPreview() {
+        ICATheme {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Column {
+                    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                        Box(
+                            Modifier
+                                .height(55.dp)
+                                .weight(1f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            ItemDesc("Boiled Egg", 4650, 5, 80, 2, 40)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .height(50.dp)
+                                .weight(.15f)
+                        ) {
+                            WorldChangeButton(world = "Crystal")
+                        }
+                    }
+                    QualityButton(false)
+                    Listing("Jenova", fakeData2, false)
+                }
+            }
+        }
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         recreate()
     }
 }
