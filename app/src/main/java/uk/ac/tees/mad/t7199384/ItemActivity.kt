@@ -26,6 +26,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,7 +54,8 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
     private val BASEURL: String = "https://universalis.app/api/v2/"
     private val TAG: String = "CHECK_RESPONSE"
 
-    private var hqflag: Boolean = true
+    var hqflag: Boolean by mutableStateOf(true)
+        private set
 
     val fakeData = Item(
         itemID = 4650,
@@ -152,7 +155,7 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 worldID = 34,
                 creatorName = "",
                 creatorID = "12d9d40d0de04c84ba299c67846e838d6d2b4c8baa5e761aa0c6c45188343c00",
-                hq = false,
+                hq = true,
                 isCrafted = true,
                 listingID = "1ea6ba3a7db77d7b03c3c1562d9e27867993c6ed3f387bb4264a6e99ffdeb812",
                 materia = emptyList(),
@@ -196,12 +199,8 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         setContent {
             ICATheme {
                 val worldText by remember{mutableStateOf(world)}
-
-                var data: Item? = fakeData2
-
-                LaunchedEffect(true) {
-                    data = getItem("world", 4650)
-                }
+                val hqState = rememberUpdatedState(newValue = (hqflag))
+                //var data: Item? = getItem("world", 4650)
 
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
                     Column {
@@ -232,8 +231,8 @@ class ItemActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                                 WorldChangeButton(world = worldText)
                             }
                         }
-                            QualityButton(true)
-                            Listing(worldText, fakeData2!!, true)
+                            QualityButton(hqState.value)
+                            Listing(worldText, fakeData2, hqState.value)
                     }
             }
         }
@@ -336,14 +335,15 @@ fun ItemDesc(name: String, id: Int, priceHQ: Int?, quantityHQ: Int?, priceNQ: In
 
 @Composable
 fun QualityButton(boolean: Boolean){
-        Row(modifier=Modifier
+        Row(modifier= Modifier
             .height(50.dp)
             .fillMaxWidth()) {
             Column(modifier = Modifier
                 .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 TextButton(onClick = {qualityChange(true)},
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .background(if (boolean) Color.Gray else Color.Transparent))
                     {Text("High Quality")}
             }
@@ -351,7 +351,8 @@ fun QualityButton(boolean: Boolean){
                 .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 TextButton(onClick = {qualityChange(false)},
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .background(if (!boolean) Color.Gray else Color.Transparent))
                 {Text("Normal Quality")}
             }
@@ -360,7 +361,6 @@ fun QualityButton(boolean: Boolean){
 
 private fun qualityChange(boolean: Boolean){
     hqflag=boolean
-    recreate()
 }
 @Composable
 fun Listing(world: String, data: Item, hqflag: Boolean) {
