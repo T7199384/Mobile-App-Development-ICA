@@ -3,6 +3,7 @@ package uk.ac.tees.mad.t7199384
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -30,16 +34,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import uk.ac.tees.mad.t7199384.models.api.Item
+import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.models.api.Marketable
+import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
+import uk.ac.tees.mad.t7199384.models.api.Update
 import uk.ac.tees.mad.t7199384.models.api.fakeUpdates
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private val BASEURL = "https://universalis.app/api/v2/extra/stats/"
+    private val TAG = "CHECK_RESPONSE_UPDATE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
         val world = sharedPref.getString("world", "Empty").toString()
+
+        val mostUpdatedPosts=UpdatePreview()
+        val leastUpdatedPosts =UpdatePreview()
 
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
@@ -48,8 +72,23 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             ICATheme {
                 val worldText by remember{mutableStateOf(world)}
 
+                val coroutineScope = rememberCoroutineScope()
+
+                // Use remember to hold the state of your data
+                var data by remember { mutableStateOf<Update?>(null) }
+
+                // Trigger the item fetch when needed (e.g., on composition)
+                DisposableEffect(key1 = Unit) {
+                    coroutineScope.launch {
+                        val result = getUpdate("Crystal")
+
+                        data = result
+                    }
+                    onDispose {}
+                }
+
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Column (Modifier.padding(start = 5.dp)){
+                    Column (Modifier.padding(start = 5.dp).fillMaxHeight()){
                         Row(horizontalArrangement = Arrangement.SpaceBetween) {
                             Box(
                                 Modifier
@@ -64,11 +103,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                                     .height(50.dp)
                                     .weight(.15f)
                             ) {
-                                WorldChangeButton(worldText)
+                                WorldChangeButton(world = worldText)
                             }
                         }
-                        //QualityButton(false)
-                        //Listing("Jenova", fakeData2, false)
+                        UpdateView(mostUpdatedPosts,leastUpdatedPosts)
                     }
                 }
         }
@@ -141,11 +179,40 @@ fun UpdateView(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
         }
 
 }
-/*
-fun mostRecent (world: String): List<Marketable>{
-    val mostRecentPosts = List<Marketable> = null
-    return mostRecentPosts
-}*/
+    private suspend fun getUpdate(world: String): Update {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+
+        val url = BASEURL
+        val api = Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(RecentUpdatesAPI::class.java)
+
+        return suspendCoroutine { continuation ->
+            api.getMostRecentUpdates(world).enqueue(object : Callback<Update> {
+                override fun onResponse(call: Call<Update>, response: Response<Update>) {
+                    if (response.isSuccessful) {
+                        Log.i(TAG, "listings received")
+                        Log.i(TAG, "onResponse:${response.body()}")
+                        continuation.resume(response.body())
+                    } else {
+                        Log.i(TAG, "receive failed: ${response.code()} with $url")
+                        Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                        continuation.resume(null)
+                    }
+                }
+
+                override fun onFailure(call: Call<Update>, t: Throwable) {
+                    Log.i(TAG, "onFailure: ${t.message}")
+                    continuation.resume(null)
+                }
+            })
+        }
+    }
 @Preview(showBackground = true)
 
 

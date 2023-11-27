@@ -56,7 +56,7 @@ import uk.ac.tees.mad.t7199384.models.api.fakeWorldData
 class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val BASEURL: String = "https://universalis.app/api/v2/"
-    private val TAG: String = "CHECK_RESPONSE"
+    private val TAG: String = "CHECK_RESPONSE_ITEM"
 
     var hqflag: Boolean by mutableStateOf(true)
         private set
