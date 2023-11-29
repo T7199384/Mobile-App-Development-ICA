@@ -5,14 +5,17 @@
 
 
     <string-array name="world_array">
-        <item>Adamantoise</item><item>Cactuar</item><item>Faerie</item><item>Gilgamesh</item>
-        <item>Jenova</item><item>Midgardsormr</item><item>Sargatanas</item><item>Siren</item>
-        <item>Balmung</item><item>Brynhildr</item><item>Coeurl</item><item>Diabolos</item>
-        <item>Goblin</item><item>Malboro</item><item>Mateus</item><item>Zalera</item>
-        <item>Cerberus</item><item>Louisoix</item><item>Moogle</item><item>Omega</item>
-        <item>Phantom</item><item>Ragnarok</item><item>Sagittarius</item><item>Spriggan</item>
-        <item>Alpha</item><item>Lich</item><item>Odin</item><item>Phoenix</item>
-        <item>Raiden</item><item>Shiva</item><item>Twintania</item><item>Zodiark</item>
+        <item>Aether</item>
+        <item>Crystal</item>
+        <item>Dynamis</item>
+        <item>Primal</item>
+        <item>Chaos</item>
+        <item>Light</item>
+        <item>Materia</item>
+        <item>Elemental</item>
+        <item>Gaia</item>
+        <item>Mana</item>
+        <item>Meteor</item>
     </string-array>
     <string-array name="aether_array">
         <item>Aether</item>
@@ -26,6 +29,7 @@
         <item>Siren</item>
     </string-array>
     <string-array name="crystal_array">
+        <item>Crystal</item>
         <item>Balmung</item>
         <item>Brynhildr</item>
         <item>Coeurl</item>

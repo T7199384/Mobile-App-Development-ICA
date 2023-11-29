@@ -309,7 +309,6 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
     @Composable
     fun Listing(world: String, data: Item, hqflag: Boolean) {
 
-
         var averagePrice = data.averagePrice
 
         var listingsHQ: List<Listing> = emptyList()
@@ -387,7 +386,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                     (listing.pricePerUnit - averagePrice) / averagePrice * 100.0
                                 )
                                 Row{
-                                    Text(text = "$world")
+                                    Text(text = "${listing.worldName}")
                                     Spacer(modifier = Modifier.padding(5.dp))
                                     Text(text = "${listing.pricePerUnit}G X ${listing.quantity}")
                                     Spacer(modifier = Modifier.padding(5.dp))
