@@ -42,8 +42,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uk.ac.tees.mad.t7199384.models.api.Item
-import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.models.api.Marketable
 import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
 import uk.ac.tees.mad.t7199384.models.api.Update
@@ -62,9 +60,6 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         val sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
         val world = sharedPref.getString("world", "Empty").toString()
 
-        val mostUpdatedPosts=UpdatePreview()
-        val leastUpdatedPosts =UpdatePreview()
-
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
@@ -74,15 +69,23 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
                 val coroutineScope = rememberCoroutineScope()
 
-                // Use remember to hold the state of your data
-                var data by remember { mutableStateOf<Update?>(null) }
+                var mostUpdatedPosts:List<Marketable> by remember { mutableStateOf(emptyList()) }
+                var leastUpdatedPosts:List<Marketable> by remember { mutableStateOf(emptyList()) }
 
-                // Trigger the item fetch when needed (e.g., on composition)
                 DisposableEffect(key1 = Unit) {
                     coroutineScope.launch {
-                        val result = getUpdate("Crystal")
+                        val result = getUpdate(worldText,"MOST")
 
-                        data = result
+                        mostUpdatedPosts = result
+                    }
+                    onDispose {}
+                }
+
+                DisposableEffect(key1 = Unit) {
+                    coroutineScope.launch {
+                        val result = getUpdate(worldText,"LEAST")
+
+                        leastUpdatedPosts = result
                     }
                     onDispose {}
                 }
@@ -179,7 +182,7 @@ fun UpdateView(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
         }
 
 }
-    private suspend fun getUpdate(world: String): Update {
+    private suspend fun getUpdate(world: String, s: String): List<Marketable> {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
@@ -192,25 +195,57 @@ fun UpdateView(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
             .build()
             .create(RecentUpdatesAPI::class.java)
 
-        return suspendCoroutine { continuation ->
-            api.getMostRecentUpdates(world).enqueue(object : Callback<Update> {
-                override fun onResponse(call: Call<Update>, response: Response<Update>) {
-                    if (response.isSuccessful) {
-                        Log.i(TAG, "listings received")
-                        Log.i(TAG, "onResponse:${response.body()}")
-                        continuation.resume(response.body())
-                    } else {
-                        Log.i(TAG, "receive failed: ${response.code()} with $url")
-                        Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
-                        continuation.resume(null)
-                    }
-                }
+        if(s == "MOST") {
+            return suspendCoroutine { continuation ->
+                api.getMostRecentUpdates(world).enqueue(object : Callback<Update> {
+                    override fun onResponse(call: Call<Update>, response: Response<Update>) {
+                        if (response.isSuccessful) {
+                            Log.i(TAG, "listings received")
+                            Log.i(TAG, "onResponse:${response.body()}")
 
-                override fun onFailure(call: Call<Update>, t: Throwable) {
-                    Log.i(TAG, "onFailure: ${t.message}")
-                    continuation.resume(null)
-                }
-            })
+                            val body = response.body()
+                            val marketables: List<Marketable> = body?.items ?: emptyList()
+
+                            continuation.resume(marketables)
+                        } else {
+                            Log.i(TAG, "receive failed: ${response.code()} with $url")
+                            Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                            continuation.resume(emptyList())
+                        }
+                    }
+
+                    override fun onFailure(call: Call<Update>, t: Throwable) {
+                        Log.i(TAG, "onFailure: ${t.message}")
+                        continuation.resume(emptyList())
+                    }
+                })
+            }
+        }
+        else{
+            return suspendCoroutine { continuation ->
+                api.getLeastRecentUpdates(world).enqueue(object : Callback<Update> {
+                    override fun onResponse(call: Call<Update>, response: Response<Update>) {
+                        if (response.isSuccessful) {
+                            Log.i(TAG, "listings received")
+                            Log.i(TAG, "onResponse:${response.body()}")
+
+                            val body = response.body()
+                            val marketables: List<Marketable> = body?.items ?: emptyList()
+
+                            continuation.resume(marketables)
+                        } else {
+                            Log.i(TAG, "receive failed: ${response.code()} with $url")
+                            Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                            continuation.resume(emptyList())
+                        }
+                    }
+
+                    override fun onFailure(call: Call<Update>, t: Throwable) {
+                        Log.i(TAG, "onFailure: ${t.message}")
+                        continuation.resume(emptyList())
+                    }
+                })
+            }
         }
     }
 @Preview(showBackground = true)

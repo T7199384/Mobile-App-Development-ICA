@@ -14,4 +14,118 @@
         <item>Alpha</item><item>Lich</item><item>Odin</item><item>Phoenix</item>
         <item>Raiden</item><item>Shiva</item><item>Twintania</item><item>Zodiark</item>
     </string-array>
+    <string-array name="aether_array">
+        <item>Aether</item>
+        <item>Adamantoise</item>
+        <item>Cactuar</item>
+        <item>Faerie</item>
+        <item>Gilgamesh</item>
+        <item>Jenova</item>
+        <item>Midgardsormr</item>
+        <item>Sargatanas</item>
+        <item>Siren</item>
+    </string-array>
+    <string-array name="crystal_array">
+        <item>Balmung</item>
+        <item>Brynhildr</item>
+        <item>Coeurl</item>
+        <item>Diabolos</item>
+        <item>Goblin</item>
+        <item>Malboro</item>
+        <item>Mateus</item>
+        <item>Zalera</item>
+    </string-array>
+    <string-array name="dynamis_array">
+        <item>Dynamis</item>
+        <item>Halicarnassus</item>
+        <item>Maduin</item>
+        <item>Marilith</item>
+        <item>Seraph</item>
+    </string-array>
+    <string-array name="primal_array">
+        <item>Primal</item>
+        <item>Behemoth</item>
+        <item>Excalibur</item>
+        <item>Exodus</item>
+        <item>Famfrit</item>
+        <item>Hyperion</item>
+        <item>Lamia</item>
+        <item>Leviathan</item>
+        <item>Ultros</item>
+    </string-array>
+    <string-array name="chaos_array">
+        <item>Chaos</item>
+        <item>Cerberus</item>
+        <item>Louisoix</item>
+        <item>Moogle</item>
+        <item>Omega</item>
+        <item>Phantom</item>
+        <item>Ragnarok</item>
+        <item>Sagittarius</item>
+        <item>Spriggan</item>
+    </string-array>
+    <string-array name="light_array">
+        <item>Light</item>
+        <item>Alpha</item>
+        <item>Lich</item>
+        <item>Odin</item>
+        <item>Phoenix</item>
+        <item>Raiden</item>
+        <item>Shiva</item>
+        <item>Twintania</item>
+        <item>Zodiark</item>
+    </string-array>
+    <string-array name="elemental_array">
+        <item>Elemental</item>
+        <item>Aegis</item>
+        <item>Atomos</item>
+        <item>Carbuncle</item>
+        <item>Garuda</item>
+        <item>Gungnir</item>
+        <item>Kujata</item>
+        <item>Tonberry</item>
+        <item>Typhon</item>
+    </string-array>
+    <string-array name="gaia_array">
+        <item>Gaia</item>
+        <item>Alexander</item>
+        <item>Bahamut</item>
+        <item>Durandal</item>
+        <item>Fenrir</item>
+        <item>Ifrit</item>
+        <item>Ridill</item>
+        <item>Tiamat</item>
+        <item>Ultima</item>
+    </string-array>
+    <string-array name="mana_array">
+        <item>Mana</item>
+        <item>Anima</item>
+        <item>Asura</item>
+        <item>Chocobo</item>
+        <item>Hades</item>
+        <item>Ixion</item>
+        <item>Masamune</item>
+        <item>Pandaemonium</item>
+        <item>Titan</item>
+    </string-array>
+    <string-array name="meteor_array">
+        <item>Meteor</item>
+        <item>Belias</item>
+        <item>Mandragora</item>
+        <item>Ramuh</item>
+        <item>Shinryu</item>
+        <item>Unicorn</item>
+        <item>Valefor</item>
+        <item>Yojimbo</item>
+        <item>Zeromus</item>
+    </string-array>
+    <string-array name="materia_array">
+        <item>Materia</item>
+        <item>Bismarck</item>
+        <item>Ravana</item>
+        <item>Sephirot</item>
+        <item>Sophia</item>
+        <item>Zurvan</item>
+    </string-array>
+
 </resources>

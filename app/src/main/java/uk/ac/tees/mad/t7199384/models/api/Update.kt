@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Update(
-    val update: Map<String, Marketable> = mapOf<String,Marketable>()
-)
+    val items: List<Marketable> = emptyList()
+) {
+}

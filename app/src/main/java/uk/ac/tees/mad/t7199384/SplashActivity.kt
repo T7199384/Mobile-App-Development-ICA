@@ -64,10 +64,10 @@ fun Greeting(title: String, modifier: Modifier = Modifier) {
         Row {
             Spacer(modifier = Modifier.height(30.dp))
             Image (
-                painter = painterResource(R.drawable.ic_launcher_foreground),
+                painter = painterResource(R.drawable.app_icon),
                 contentDescription = "Splash Screen Image",
                 modifier = Modifier
-                    .size(500.dp)
+                    .size(300.dp)
             )
         }
         Row {
@@ -84,6 +84,8 @@ fun Greeting(title: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     ICATheme {
-        Greeting("Kupo Mart")
+        Surface(modifier=Modifier.fillMaxSize()) {
+            Greeting("Kupo Mart")
+        }
     }
 }

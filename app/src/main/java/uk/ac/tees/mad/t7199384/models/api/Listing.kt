@@ -1,8 +1,6 @@
 package uk.ac.tees.mad.t7199384.models.api
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 sealed class Listing {
     @Serializable

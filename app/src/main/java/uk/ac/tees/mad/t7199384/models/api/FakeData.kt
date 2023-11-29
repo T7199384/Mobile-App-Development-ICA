@@ -49,7 +49,7 @@ fun calculateAveragePrice(listings: List<Listing.WorldListing>): Double {
 fun fakeUpdates(): List<Marketable>{
     val mostUpdatedPosts = (1..30).map {
         Marketable(
-            itemID= it,
+            itemID= 20004,
             lastUploadTime =1700693363,
             worldID = 40,
             worldName = "Crystal",

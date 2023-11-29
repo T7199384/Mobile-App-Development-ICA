@@ -1,12 +1,14 @@
 package uk.ac.tees.mad.t7199384
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,9 +25,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.gson.GsonBuilder
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -46,6 +52,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.t7199384.models.api.Item
 import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.models.api.Listing
+import uk.ac.tees.mad.t7199384.models.api.ListingTypeAdapter
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 import kotlin.coroutines.resume
@@ -60,141 +67,6 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
 
     var hqflag: Boolean by mutableStateOf(true)
         private set
-
-    val fakeData = Item(
-        itemID = 4650,
-        worldID = 40,
-        lastUploadTime = 1700361722705,
-        averagePrice = 469.79114,
-        averagePriceNQ = 444.14285,
-        averagePriceHQ = 312.1,
-        listings = listOf(
-            Listing.NormalListing(
-                lastReviewTime = 1700352444,
-                pricePerUnit = 105,
-                quantity = 99,
-                stainID = 0,
-                creatorName = "",
-                creatorID = null,
-                hq = false,
-                isCrafted = false,
-                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia = listOf(),
-                onMannequin = false,
-                retainerCity = 4,
-                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName = "ShrekOfCabbages",
-                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total = 10395
-            ),
-            Listing.NormalListing(
-                lastReviewTime = 1700352444,
-                pricePerUnit = 151,
-                quantity = 10,
-                stainID = 0,
-                creatorName = "",
-                creatorID = null,
-                hq = true,
-                isCrafted = false,
-                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia = listOf(),
-                onMannequin = false,
-                retainerCity = 4,
-                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName = "SoupSaiyan",
-                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total = 1510
-            ),
-            Listing.NormalListing(
-                lastReviewTime = 1700352444,
-                pricePerUnit = 200,
-                quantity = 99,
-                stainID = 0,
-                creatorName = "",
-                creatorID = null,
-                hq = false,
-                isCrafted = false,
-                listingID = "ddcb00c174615b0615ae8efdce3ee8b589945aa7fccaeb9e3864be65be125295",
-                materia = listOf(),
-                onMannequin = false,
-                retainerCity = 4,
-                retainerID = "b0022597232ed037aa0bad921d0ef91cc8933fdd04d2df6879777610b2e58dbc",
-                retainerName = "AFrixFuzzer",
-                sellerID = "1a5859104a70752007eeebeff93c502dfb639ff5f9edc158b4305ee3c16b2009",
-                total = 19800
-            )
-        )
-    )
-
-    private val fakeData2 = Item(
-        itemID = 4650,
-        lastUploadTime = 1700361722705,
-        averagePrice = 469.79114,
-        averagePriceNQ = 444.14285,
-        averagePriceHQ = 312.1,
-        listings = listOf(
-            Listing.WorldListing(
-                lastReviewTime = 1700693363,
-                pricePerUnit = 2,
-                quantity = 1,
-                stainID = 0,
-                worldName = "Brynhildr",
-                worldID = 34,
-                creatorName = "",
-                creatorID = null,
-                hq = false,
-                isCrafted = false,
-                listingID = "a78696485b716926e8d191f1ca0175548da397cb19f9ea4bc9c03c79b90b54e6",
-                materia = emptyList(),
-                onMannequin = false,
-                retainerCity = 1,
-                retainerID = "2e31d9b5281db024fa996174bd8b76f498ddabdd564a17a54ac1b63ab36d7a73",
-                retainerName = "M'liko",
-                sellerID = "d0315724e23275dabaa3a2efb0e208ff37dbf07df83f24c07e601d5ce5f9a60b",
-                total = 2
-            ),
-            Listing.WorldListing(
-                lastReviewTime = 1700677096,
-                pricePerUnit = 2,
-                quantity = 1,
-                stainID = 0,
-                worldName = "Brynhildr",
-                worldID = 34,
-                creatorName = "",
-                creatorID = "12d9d40d0de04c84ba299c67846e838d6d2b4c8baa5e761aa0c6c45188343c00",
-                hq = true,
-                isCrafted = true,
-                listingID = "1ea6ba3a7db77d7b03c3c1562d9e27867993c6ed3f387bb4264a6e99ffdeb812",
-                materia = emptyList(),
-                onMannequin = false,
-                retainerCity = 10,
-                retainerID = "d8d88dc1fcee2379fa4d6f2057496cd18ed9e3d7d5907f6815499e8921db456b",
-                retainerName = "Jay'zhava",
-                sellerID = "107a78dbbec14a484b9e427fe2dd67c22fab8d0dfb7c714efbe0430abfe9ef6c",
-                total = 2
-            ),
-            Listing.WorldListing(
-                lastReviewTime = 1700663662,
-                pricePerUnit = 2,
-                quantity = 1,
-                stainID = 0,
-                worldName = "Brynhildr",
-                worldID = 34,
-                creatorName = "",
-                creatorID = null,
-                hq = false,
-                isCrafted = false,
-                listingID = "c73338f7deda5c3d1c3dc7f717aaeb023f7566d92354e46470d93e4d36f83503",
-                materia = emptyList(),
-                onMannequin = false,
-                retainerCity = 4,
-                retainerID = "947e2006be17929ed6144a9fe613c1d286bd424f16576aa47c74f89aa2134f69",
-                retainerName = "Solanna",
-                sellerID = "e230acfb1e6c8fa1b56e03d607081c0d408585fdf7e4703e6baf6870524216e2",
-                total = 2
-            )
-        )
-    )
 
     val fakeWorldData: Item = fakeWorldData()
 
@@ -212,7 +84,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             ICATheme {
                 val worldText by remember { mutableStateOf(world) }
                 val hqState = rememberUpdatedState(newValue = (hqflag))
-                /*
+
                                 val coroutineScope = rememberCoroutineScope()
 
                                 // Use remember to hold the state of your data
@@ -227,8 +99,8 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                     }
                                     onDispose {}
                                 }
-                */
-                var data = fakeWorldData
+
+                //var data = fakeWorldData
                 if (data == null) {
                     CircularProgressIndicator()
                 } else {
@@ -271,6 +143,11 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                 }
             }
         }
+    }
+    override fun onBackPressed() {
+
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
     }
 
     private fun cheapestListing(listingsData: Item): List<Int?> {
@@ -316,20 +193,27 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             .build()
 
         val url = BASEURL
+
+        val gson = GsonBuilder()
+            .registerTypeAdapter(Listing::class.java, ListingTypeAdapter())
+            .create()
         val api = Retrofit.Builder()
             .baseUrl(url)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(ItemAPI::class.java)
 
         return suspendCoroutine { continuation ->
-            api.getItem(world, itemID.toString()).enqueue(object : Callback<Item> {
-                override fun onResponse(call: Call<Item>, response: Response<Item>) {
+            api.getItem(world, itemID.toString()).enqueue(object : Callback<Item?> {
+                override fun onResponse(call: Call<Item?>, response: Response<Item?>) {
                     if (response.isSuccessful) {
                         Log.i(TAG, "listings received")
                         Log.i(TAG, "onResponse:${response.body()}")
-                        continuation.resume(response.body())
+
+                        val item: Item? = response.body()
+
+                        continuation.resume(item)
                     } else {
                         Log.i(TAG, "receive failed: ${response.code()} with $url")
                         Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
@@ -337,7 +221,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                     }
                 }
 
-                override fun onFailure(call: Call<Item>, t: Throwable) {
+                override fun onFailure(call: Call<Item?>, t: Throwable) {
                     Log.i(TAG, "onFailure: ${t.message}")
                     continuation.resume(null)
                 }
@@ -366,7 +250,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                 Column {
                     Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                     Text(
-                        text = "$priceHQ X $quantityHQ Total: $totalHQ",
+                        text = "${priceHQ}G X $quantityHQ Total: ${totalHQ}G",
                         style = TextStyle.Default.copy(fontSize = 14.sp)
                     )
                 }
@@ -374,7 +258,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                 Column {
                     Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                     Text(
-                        text = "$priceNQ X $quantityNQ Total: $totalNQ",
+                        text = "${priceNQ}G X $quantityNQ Total: ${totalNQ}G",
                         style = TextStyle.Default.copy(fontSize = 14.sp)
                     )
                 }
@@ -467,37 +351,56 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 3.dp)
+                            .padding(start = 6.dp)
+                            .border(1.dp, Color.DarkGray)
                     )
                     {
                         Spacer(modifier = Modifier.padding(1.dp))
                         when (listing) {
                             is Listing.NormalListing -> {
-                                val diff = String.format(
+                                val diff = ((listing.pricePerUnit - averagePrice) / averagePrice) * 100.0
+                                val diffText = String.format(
                                     "%.2f",
                                     (listing.pricePerUnit - averagePrice) / averagePrice * 100.0
                                 )
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text =
-                                    "$world ${listing.pricePerUnit}G " +
-                                            "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                            "  ${listing.retainerName}"
-                                )
+                                Row{
+                                    Text(text = "$world")
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                    Text(text = "${listing.pricePerUnit}G X ${listing.quantity}")
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                }
+                                Row{
+                                    Text(text = "Total: ${listing.total}G")
+                                }
+                                Row {
+                                    val textColor = if (diff > 0.0) Color.Red else Color.Green
+                                    Text("$diffText%", color=textColor)
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                    Text(text="${listing.retainerName}")
+                                }
                             }
 
                             is Listing.WorldListing -> {
-                                val diff = String.format(
+                                val diff = ((listing.pricePerUnit - averagePrice) / averagePrice) * 100.0
+                                val diffText = String.format(
                                     "%.2f",
                                     (listing.pricePerUnit - averagePrice) / averagePrice * 100.0
                                 )
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text =
-                                    "${listing.worldName} ${listing.pricePerUnit}G " +
-                                            "X ${listing.quantity} Total: ${listing.total} $diff% " +
-                                            "  ${listing.retainerName}"
-                                )
+                                Row{
+                                    Text(text = "$world")
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                    Text(text = "${listing.pricePerUnit}G X ${listing.quantity}")
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                }
+                                Row{
+                                    Text(text = "Total: ${listing.total}G")
+                                }
+                                Row {
+                                    val textColor = if (diff > 0.0) Color.Red else Color.Green
+                                    Text("$diffText%", color=textColor)
+                                    Spacer(modifier = Modifier.padding(5.dp))
+                                    Text(text="${listing.retainerName}")
+                                }
                             }
                         }
                     }
@@ -536,7 +439,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                         }
                     }
                     QualityButton(false)
-                    Listing("Jenova", fakeData2, false)
+                    Listing("Jenova", fakeWorldData, false)
                 }
             }
         }
