@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +47,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.t7199384.models.api.Marketable
+import uk.ac.tees.mad.t7199384.models.api.RateLimiter
 import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
 import uk.ac.tees.mad.t7199384.models.api.SearchAPI
 import uk.ac.tees.mad.t7199384.models.api.Update
@@ -140,10 +143,11 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .border(3.dp, Color.DarkGray)
             ) {
                 Text(
                     text = "Most Recent Updates",
-                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle.Default.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 )
             }
         }
@@ -153,24 +157,32 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
                 val coroutineScope = rememberCoroutineScope()
 
-                var itemStr:List<String> by remember { mutableStateOf(listOf("","")) }
+                var itemNameType:List<String> by remember { mutableStateOf(emptyList()) }
 
                 DisposableEffect(key1 = Unit) {
                     coroutineScope.launch {
                         val result = searchID(mPost.itemID)
 
-                        itemStr = result
+                        itemNameType = result
                     }
                     onDispose {}
                 }
 
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row {
-                        Text(text = "${mPost.itemID}")
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text(itemStr[0])
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text("")
+                if(itemNameType.isEmpty()){
+                    itemNameType= listOf("If you still see this you scrolled too fast!","")
+                }
+
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                    Column {
+                        Row {
+                            Text(text = "${mPost.itemID}")
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            Text(itemNameType[0])
+                        }
+                        Column {
+                            Text(itemNameType[1])
+                            Spacer(modifier = Modifier.padding(2.dp))
+                        }
                     }
                 }
             }
@@ -179,37 +191,46 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .border(3.dp, Color.DarkGray)
             ) {
                 Text(
                     text = "Least Recent Updates",
-                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle.Default.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 )
             }
         }
         LazyColumn(Modifier.fillMaxHeight(1f)) {
             items(leastUpdate.size) { index ->
-                val mPost = leastUpdate[index]
+                val lPost = leastUpdate[index]
 
                 val coroutineScope = rememberCoroutineScope()
 
-                var itemStr:List<String> by remember { mutableStateOf(listOf("","")) }
+                var itemNameType:List<String> by remember { mutableStateOf(emptyList()) }
 
                 DisposableEffect(key1 = Unit) {
                     coroutineScope.launch {
-                        val result = searchID(mPost.itemID)
+                        val result = searchID(lPost.itemID)
 
-                        itemStr = result
+                        itemNameType = result
                     }
                     onDispose {}
                 }
 
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row {
-                        Text(text = "${mPost.itemID}")
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text(itemStr[0])
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text("")
+                if(itemNameType.isEmpty()){
+                    itemNameType= listOf("If you still see this you scrolled too fast!","")
+                }
+
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                    Column {
+                        Row {
+                            Text(text = "${lPost.itemID}")
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            Text(itemNameType[0])
+                        }
+                        Column {
+                            Text(itemNameType[1])
+                            Spacer(modifier = Modifier.padding(2.dp))
+                        }
                     }
                 }
             }
@@ -219,6 +240,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
     private suspend fun getUpdate(world: String, s: String): List<Marketable> {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .addInterceptor(RateLimiter())
             .build()
 
         val url = BASEURL
@@ -372,10 +394,11 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(3.dp)
             ) {
                 Text(
                     text = "Most Recent Updates",
-                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle.Default.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 )
             }
         }
@@ -383,13 +406,17 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             items(mostUpdate.size) { index ->
                 val mPost = mostUpdate[index]
 
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row {
-                        Text(text = "${mPost.itemID}")
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Boiled Egg")
-                        Spacer(modifier = Modifier.padding(10.dp))
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                    Column {
+                        Row {
+                            Text(text = "${mPost.itemID}")
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            Text("Boiled Egg")
+                        }
+                    }
+                    Column {
                         Text("Medicine & Meal")
+                        Spacer(modifier = Modifier.padding(2.dp))
                     }
                 }
             }
@@ -398,10 +425,11 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(3.dp)
             ) {
                 Text(
                     text = "Least Recent Updates",
-                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle.Default.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 )
             }
         }
@@ -409,17 +437,22 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             items(leastUpdate.size) { index ->
                 val mPost = leastUpdate[index]
 
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row {
-                        Text(text = "${mPost.itemID}")
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Boiled Egg")
-                        Spacer(modifier = Modifier.padding(10.dp))
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                    Column {
+                        Row {
+                            Text(text = "${mPost.itemID}")
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            Text("Boiled Egg")
+                        }
+                    }
+                    Column {
                         Text("Medicine & Meal")
+                        Spacer(modifier = Modifier.padding(2.dp))
                     }
                 }
             }
         }
+
     }
 
     fun UpdatePreview(): List<Marketable>{
