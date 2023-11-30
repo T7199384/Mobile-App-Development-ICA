@@ -135,7 +135,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                         .height(50.dp)
                                         .weight(.15f)
                                 ) {
-                                    WorldChangeButton(world = worldText)
+                                    WorldChangeButton()
                                 }
                             }
                             QualityButton(hqState.value)
@@ -436,7 +436,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                 .height(50.dp)
                                 .weight(.15f)
                         ) {
-                            WorldChangeButton(world = "Crystal")
+                            WorldChangeButton()
                         }
                     }
                     QualityButton(false)

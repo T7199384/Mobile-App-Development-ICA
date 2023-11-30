@@ -42,7 +42,7 @@ fun fakeWorldData(): Item {
 }
 
 fun calculateAveragePrice(listings: List<Listing.WorldListing>): Double {
-    val total = listings.sumByDouble { it.pricePerUnit.toDouble() }
+    val total = listings.sumOf { it.pricePerUnit.toDouble() }
     return if (listings.isNotEmpty()) total / listings.size else 0.0
 }
 

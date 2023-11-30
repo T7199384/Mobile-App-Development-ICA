@@ -42,7 +42,7 @@ class TemplateActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenc
                             //WorldChangeButton(world = "Crystal")
                         }
                         Box(modifier = Modifier.fillMaxSize().weight(0.15f)){
-                            WorldChangeButton(world = worldText)
+                            WorldChangeButton()
                         }
                     }
             }
@@ -72,7 +72,7 @@ fun GreetingPreview2() {
                     //WorldChangeButton(world = "Crystal")
                 }
                 Box(modifier = Modifier.fillMaxSize().weight(0.15f)){
-                    WorldChangeButton(world = "Crystal")
+                    WorldChangeButton()
                 }
             }
             }

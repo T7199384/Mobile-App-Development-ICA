@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.t7199384.R
 
 @Composable
-fun WorldChangeButton(world: String) {
+fun WorldChangeButton() {
 
     var dialog: AlertDialog? = null
 
@@ -40,13 +40,13 @@ fun WorldChangeButton(world: String) {
     val context = LocalContext.current
     val array: Array<String> = context.resources.getStringArray(R.array.world_array)
 
-    var currentWorld=world
+    var currentWorld:String
 
     val builder: AlertDialog.Builder = AlertDialog.Builder(context)
     builder
         .setTitle("Choose world")
         .setNegativeButton("Cancel"){_, _ -> }
-        .setSingleChoiceItems(array,0,){ itemsArray, which ->
+        .setSingleChoiceItems(array,0,){ _, which ->
             currentWorld=array[which]
             val rLocation = "${array[which]}_array".lowercase()
             val rID = context.resources.getIdentifier(rLocation,"array",context.packageName)
@@ -57,9 +57,9 @@ fun WorldChangeButton(world: String) {
 
     IconButton( modifier=Modifier.size(80.dp),
         onClick = {
-            val dialog = builder.create()
-            dialogSet(dialog)
-            dialog.show()
+            val firstDialog = builder.create()
+            dialogSet(firstDialog)
+            firstDialog.show()
         },
     ) {
         Box(modifier= Modifier
@@ -81,12 +81,12 @@ private fun showAdditionalOptionsDialog(context: Context, worldOption: Int, worl
 
     AlertDialog.Builder(context)
         .setTitle("Additional Options for $world")
-        .setPositiveButton("Confirm"){dialog, which ->
+        .setPositiveButton("Confirm"){_, _ ->
             var sharedPref = context.getSharedPreferences(context.resources.getString(R.string.world_file_key), Context.MODE_PRIVATE)
             var edit = sharedPref.edit()
             edit.putString("world",currentWorld)
             edit.apply()
         }
-        .setSingleChoiceItems(array,0,){ dialog, which -> currentWorld=array[which]}
+        .setSingleChoiceItems(array,0,){ _, which -> currentWorld=array[which]}
         .show()
 }
