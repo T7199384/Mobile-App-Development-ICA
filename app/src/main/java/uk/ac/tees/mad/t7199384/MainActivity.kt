@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,6 +46,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.t7199384.models.api.Marketable
 import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
+import uk.ac.tees.mad.t7199384.models.api.SearchAPI
 import uk.ac.tees.mad.t7199384.models.api.Update
 import uk.ac.tees.mad.t7199384.models.api.fakeUpdates
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
@@ -54,7 +57,9 @@ import kotlin.coroutines.suspendCoroutine
 class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val BASEURL = "https://universalis.app/api/v2/extra/stats/"
+    private val SEARCHURL = "https://xivapi.com/"
     private val TAG = "CHECK_RESPONSE_UPDATE"
+    private val SEARCHTAG = "CHECK_SEARCH_RESPONSE_UPDATE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
@@ -91,7 +96,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
 
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                    Column (Modifier.padding(start = 5.dp).fillMaxHeight()){
+                    Column (
+                        Modifier
+                            .padding(start = 5.dp)
+                            .fillMaxHeight()){
                         Row(horizontalArrangement = Arrangement.SpaceBetween) {
                             Box(
                                 Modifier
@@ -143,13 +151,26 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             items(mostUpdate.size) { index ->
                 val mPost = mostUpdate[index]
 
+                val coroutineScope = rememberCoroutineScope()
+
+                var itemStr:List<String> by remember { mutableStateOf(listOf("","")) }
+
+                DisposableEffect(key1 = Unit) {
+                    coroutineScope.launch {
+                        val result = searchID(mPost.itemID)
+
+                        itemStr = result
+                    }
+                    onDispose {}
+                }
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row {
                         Text(text = "${mPost.itemID}")
                         Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Item Name")
+                        Text(itemStr[0])
                         Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Item Type")
+                        Text("")
                     }
                 }
             }
@@ -169,13 +190,26 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             items(leastUpdate.size) { index ->
                 val mPost = leastUpdate[index]
 
+                val coroutineScope = rememberCoroutineScope()
+
+                var itemStr:List<String> by remember { mutableStateOf(listOf("","")) }
+
+                DisposableEffect(key1 = Unit) {
+                    coroutineScope.launch {
+                        val result = searchID(mPost.itemID)
+
+                        itemStr = result
+                    }
+                    onDispose {}
+                }
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row {
                         Text(text = "${mPost.itemID}")
                         Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Item Name")
+                        Text(itemStr[0])
                         Spacer(modifier = Modifier.padding(10.dp))
-                        Text("Item Type")
+                        Text("")
                     }
                 }
             }
@@ -248,6 +282,53 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             }
         }
     }
+
+    private suspend fun searchID(itemId: Long): List<String>{
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+
+        val url = SEARCHURL
+        val api = Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SearchAPI::class.java)
+
+        return suspendCoroutine { continuation ->
+            api.getNameFromID(itemId).enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        Log.i(SEARCHTAG, "search received")
+                        Log.i(SEARCHTAG, "onResponse:${response.body()}")
+
+                        val name:String
+                        val type:String
+
+                        val jsonObj = JSONObject(response.body()!!.string())
+
+                        name = jsonObj.opt("Name")!!.toString()
+                        val itemKindObject = jsonObj.optJSONObject("ItemKind")
+                        type = itemKindObject?.opt("Name").toString()
+
+                        val resultList = listOf<String>(name,type)
+
+                        continuation.resume(resultList)
+                    } else {
+                        Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
+                        Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
+                        continuation.resume(emptyList())
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Log.i(SEARCHTAG, "onFailure: ${t.message}")
+                    continuation.resume(emptyList())
+                }
+            })
+        }
+    }
     @Preview(showBackground = true)
 
 
@@ -258,7 +339,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
         ICATheme {
             Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
-                Column (Modifier.padding(start = 5.dp).fillMaxHeight()){
+                Column (
+                    Modifier
+                        .padding(start = 5.dp)
+                        .fillMaxHeight()){
                     Row(horizontalArrangement = Arrangement.SpaceBetween) {
                         Box(
                             Modifier
@@ -276,7 +360,63 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                             WorldChangeButton(world = "Crystal")
                         }
                     }
-                    UpdateView(mostUpdatedPosts,leastUpdatedPosts)
+                    UpdateViewPreview(mostUpdatedPosts,leastUpdatedPosts)
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun UpdateViewPreview(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
+        Column (){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Most Recent Updates",
+                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                )
+            }
+        }
+        LazyColumn(Modifier.fillMaxHeight(.5f)) {
+            items(mostUpdate.size) { index ->
+                val mPost = mostUpdate[index]
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row {
+                        Text(text = "${mPost.itemID}")
+                        Spacer(modifier = Modifier.padding(10.dp))
+                        Text("Boiled Egg")
+                        Spacer(modifier = Modifier.padding(10.dp))
+                        Text("Medicine & Meal")
+                    }
+                }
+            }
+        }
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Least Recent Updates",
+                    style = TextStyle.Default.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                )
+            }
+        }
+        LazyColumn(Modifier.fillMaxHeight(1f)) {
+            items(leastUpdate.size) { index ->
+                val mPost = leastUpdate[index]
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row {
+                        Text(text = "${mPost.itemID}")
+                        Spacer(modifier = Modifier.padding(10.dp))
+                        Text("Boiled Egg")
+                        Spacer(modifier = Modifier.padding(10.dp))
+                        Text("Medicine & Meal")
+                    }
                 }
             }
         }
