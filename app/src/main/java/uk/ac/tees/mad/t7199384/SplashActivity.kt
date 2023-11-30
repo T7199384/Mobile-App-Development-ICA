@@ -1,12 +1,9 @@
 package uk.ac.tees.mad.t7199384
 
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
@@ -39,7 +35,7 @@ class SplashActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Kupo Mart")
+                    SplashGreeting("Kupo Mart")
                 }
             }
         }
@@ -55,7 +51,7 @@ class SplashActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(title: String, modifier: Modifier = Modifier) {
+fun SplashGreeting(title: String, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.Center,
@@ -82,10 +78,10 @@ fun Greeting(title: String, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun SplashGreetingPreview() {
     ICATheme {
         Surface(modifier=Modifier.fillMaxSize()) {
-            Greeting("Kupo Mart")
+            SplashGreeting("Kupo Mart")
         }
     }
 }
