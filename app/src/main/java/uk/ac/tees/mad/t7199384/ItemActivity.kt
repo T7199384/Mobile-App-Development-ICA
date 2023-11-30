@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,6 +76,9 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         )
         val world = sharedPref.getString("world", "Empty").toString()
 
+        val itemId=intent.getLongExtra("itemId",-1L)
+        val itemName=intent.getStringExtra("itemName") ?:"noValue"
+
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
@@ -93,7 +95,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                 // Trigger the item fetch when needed (e.g., on composition)
                                 DisposableEffect(key1 = Unit) {
                                     coroutineScope.launch {
-                                        val result = getItem(world, 4650)
+                                        val result = getItem(world, itemId)
 
                                         data = result
                                     }
@@ -120,8 +122,8 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                 ) {
                                     val cheapestListing = cheapestListing(data!!)
                                     ItemDesc(
-                                        "Boiled Egg",
-                                        4650,
+                                        itemName,
+                                        itemId,
                                         cheapestListing[0],
                                         cheapestListing[1],
                                         cheapestListing[2],
@@ -187,7 +189,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         return listOf(cheapHQ, quantityHQ, cheapNQ, quantityNQ)
     }
 
-    private suspend fun getItem(world: String, itemID: Int): Item? {
+    private suspend fun getItem(world: String, itemID: Long): Item? {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
@@ -232,7 +234,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
     @Composable
     fun ItemDesc(
         name: String,
-        id: Int,
+        id: Long,
         priceHQ: Int?,
         quantityHQ: Int?,
         priceNQ: Int?,

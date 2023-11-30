@@ -1,12 +1,14 @@
 package uk.ac.tees.mad.t7199384
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -139,6 +142,8 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     @Composable
     fun UpdateView(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
+        val context = LocalContext.current
+
         Column (){
             Row(
                 modifier = Modifier
@@ -151,7 +156,8 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 )
             }
         }
-        LazyColumn(Modifier.fillMaxHeight(.5f)) {
+        LazyColumn(Modifier.fillMaxHeight(.5f)
+        ) {
             items(mostUpdate.size) { index ->
                 val mPost = mostUpdate[index]
 
@@ -172,7 +178,14 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     itemNameType= listOf("If you still see this you scrolled too fast!","")
                 }
 
-                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)
+                    .clickable { val intent = Intent(context,ItemActivity::class.java)
+                        intent.putExtra("itemId",mPost.itemID)
+                        intent.putExtra("itemName",itemNameType[0])
+                        context.startActivity(intent)
+                    }
+
+                ) {
                     Column {
                         Row {
                             Text(text = "${mPost.itemID}")
@@ -220,7 +233,13 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     itemNameType= listOf("If you still see this you scrolled too fast!","")
                 }
 
-                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)) {
+                Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.DarkGray)
+                    .clickable { val intent = Intent(context,ItemActivity::class.java)
+                        intent.putExtra("itemId",lPost.itemID)
+                        intent.putExtra("itemName",itemNameType[0])
+                        context.startActivity(intent)
+                    }
+                ) {
                     Column {
                         Row {
                             Text(text = "${lPost.itemID}")
