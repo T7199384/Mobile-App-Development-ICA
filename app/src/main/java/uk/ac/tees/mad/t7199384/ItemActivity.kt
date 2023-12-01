@@ -116,7 +116,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                             ) {
                                 Box(
                                     Modifier
-                                        .height(55.dp)
+                                        .height(110.dp)
                                         .weight(1f),
                                     contentAlignment = Alignment.CenterStart
                                 ) {
@@ -246,23 +246,24 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         Column(Modifier.padding(start = 5.dp)) {
             Text(
                 text = "$name       $id"
-                //       "$priceHQ X $quantityHQ - $totalHQ        NQ: $priceNQ X $quantityNQ - $totalNQ",
             )
-            Row {
+            Row (){
                 Column {
                     Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                     Text(
-                        text = "${priceHQ}G X $quantityHQ Total: ${totalHQ}G",
+                        text = "${priceHQ ?:0}G X ${quantityHQ ?:0}",
                         style = TextStyle.Default.copy(fontSize = 14.sp)
                     )
+                    Text(text="Total: ${totalHQ ?:0}G")
                 }
-                Spacer(modifier = Modifier.padding(start = 35.dp))
+                Spacer(modifier = Modifier.padding(start = 30.dp))
                 Column {
                     Text(text = "Cheapest NQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                     Text(
-                        text = "${priceNQ}G X $quantityNQ Total: ${totalNQ}G",
-                        style = TextStyle.Default.copy(fontSize = 14.sp)
+                        text = "${priceNQ ?:0}G X ${quantityNQ ?:0}",
+                        style = TextStyle.Default.copy(fontSize = 14.sp),
                     )
+                    Text(text="Total: ${totalNQ ?:0}G")
                 }
             }
         }
@@ -425,7 +426,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                     Row(horizontalArrangement = Arrangement.SpaceBetween) {
                         Box(
                             Modifier
-                                .height(55.dp)
+                                .height(110.dp)
                                 .weight(1f),
                             contentAlignment = Alignment.CenterStart
                         ) {
