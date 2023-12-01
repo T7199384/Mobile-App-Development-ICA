@@ -52,7 +52,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -392,6 +395,78 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 
+    private suspend fun searchName(item: String): Long{
+        val item=item.trim()
+
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+
+        val url = SEARCHURL
+        val api = Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SearchAPI::class.java)
+
+        return suspendCoroutine { continuation ->
+            api.getIDFromName(item).enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        Log.i(SEARCHTAG, "search received")
+                        Log.i(SEARCHTAG, "onResponse:${response.body()}")
+
+                        var id:Long
+
+                        val jsonObj = JSONObject(response.body()!!.string())
+
+                        val resultsArray = jsonObj.getJSONArray("Results")
+                        if(resultsArray.length()>0){
+                            val itemFirstResultObject = resultsArray.getJSONObject(0)
+                            id = itemFirstResultObject?.getLong("ID")!!
+                        }
+                        else{
+                            id = 0L
+                        }
+
+                        continuation.resume(id)
+                    } else {
+                        Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
+                        Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
+                        continuation.resume(0L)
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Log.i(SEARCHTAG, "onFailure: ${t.message}")
+                    continuation.resume(0L)
+                }
+            })
+        }
+    }
+
+    fun searchFunction(searchText: String, context: Context){
+        val coroutineSearchScope = CoroutineScope(Dispatchers.Default)
+        var itemId= 0L
+
+        coroutineSearchScope.launch {
+                    itemId = searchName(searchText)
+
+            if(itemId!=0L){
+                runOnUiThread{
+                    Toast.makeText(context, "$itemId", Toast.LENGTH_SHORT).show()
+                }
+            }
+            else{
+                runOnUiThread {
+                    Toast.makeText(context, "item not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+                }
+
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun searchBar()
@@ -420,7 +495,9 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
-                        onDone={ Toast.makeText(context, searchText, Toast.LENGTH_SHORT).show() }
+                        onDone={
+                            searchFunction(searchText, this@MainActivity)
+                        }
                     )
                 )
             }

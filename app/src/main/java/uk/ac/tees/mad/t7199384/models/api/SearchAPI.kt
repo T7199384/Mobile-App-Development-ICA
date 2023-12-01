@@ -11,7 +11,7 @@ interface SearchAPI {
     fun getNameFromID(@Path("itemID") itemID: Long): Call<ResponseBody>
 
     @GET("search")
-    fun getIDFromName(@Query("itemName") itemName:String): Call<Any>
+    fun getIDFromName(@Query("string") itemName:String): Call<ResponseBody>
 
 
 }
