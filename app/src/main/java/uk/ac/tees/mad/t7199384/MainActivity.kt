@@ -395,7 +395,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 
-    private suspend fun searchName(item: String): Long{
+    private suspend fun searchName(item: String): List<String>{
         val item=item.trim()
 
         val okHttpClient = OkHttpClient.Builder()
@@ -417,30 +417,33 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         Log.i(SEARCHTAG, "search received")
                         Log.i(SEARCHTAG, "onResponse:${response.body()}")
 
-                        var id:Long
+                        var id: String
+                        var name: String
 
                         val jsonObj = JSONObject(response.body()!!.string())
 
                         val resultsArray = jsonObj.getJSONArray("Results")
                         if(resultsArray.length()>0){
                             val itemFirstResultObject = resultsArray.getJSONObject(0)
-                            id = itemFirstResultObject?.getLong("ID")!!
+                            id = itemFirstResultObject?.getString("ID")!!
+                            name = itemFirstResultObject?.getString("Name")!!
                         }
                         else{
-                            id = 0L
+                            id = " "
+                            name = " "
                         }
 
-                        continuation.resume(id)
+                        continuation.resume(listOf(id,name))
                     } else {
                         Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
                         Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
-                        continuation.resume(0L)
+                        continuation.resume(emptyList())
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     Log.i(SEARCHTAG, "onFailure: ${t.message}")
-                    continuation.resume(0L)
+                    continuation.resume(emptyList())
                 }
             })
         }
@@ -448,15 +451,23 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     fun searchFunction(searchText: String, context: Context){
         val coroutineSearchScope = CoroutineScope(Dispatchers.Default)
-        var itemId= 0L
+        var itemList= emptyList<String>()
 
         coroutineSearchScope.launch {
-                    itemId = searchName(searchText)
+            itemList = searchName(searchText)
 
-            if(itemId!=0L){
-                runOnUiThread{
-                    Toast.makeText(context, "$itemId", Toast.LENGTH_SHORT).show()
-                }
+            var itemId: Long=0L
+
+            if(itemList[0]!=" "){
+                itemId=itemList[0].toLong()
+            }
+            var itemName=itemList[1]
+
+            if(!itemList.isEmpty()){
+                val intent = Intent(context, ItemActivity::class.java)
+                intent.putExtra("itemId", itemId)
+                intent.putExtra("itemName", itemName)
+                context.startActivity(intent)
             }
             else{
                 runOnUiThread {
