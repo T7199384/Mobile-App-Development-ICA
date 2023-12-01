@@ -17,13 +17,18 @@ import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +58,7 @@ class SplashActivity : ComponentActivity() {
 @Composable
 fun SplashGreeting(title: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier,
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -66,12 +71,32 @@ fun SplashGreeting(title: String, modifier: Modifier = Modifier) {
                     .size(300.dp)
             )
         }
-        Row {
-            Text(
-                text = "$title",
-                modifier = modifier,
-                style = MaterialTheme.typography.titleLarge
+        Row{
+            Image (
+                painter = painterResource(R.drawable.app_title),
+                contentDescription = "Splash Screen Title",
+                modifier = Modifier
+                    .size(220.dp)
             )
+        }
+        Column {
+            Spacer(modifier = Modifier.height(150.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(0.1f), contentAlignment = Alignment.BottomCenter) {
+                    Spacer(modifier = Modifier.height(30.dp))
+                    Text(
+                        text = "Universalis v2, based on Mogboard v2.2\n" +
+                                "FINAL FANTASY XIV © 2010 - 2020 SQUARE ENIX CO., LTD. All Rights Reserved.\n" +
+                                "$title is not affliated with Universalis.app or FINAL FANTASY XIV",
+                        textAlign = TextAlign.Center,
+                        style = TextStyle.Default.copy(fontSize = 9.sp)
+                    )
+                }
+            }
         }
     }
 }
