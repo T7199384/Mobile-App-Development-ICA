@@ -29,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -38,13 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -395,58 +389,65 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 
-    private suspend fun searchName(item: String): List<String>{
-        val item=item.trim()
+    private fun searchName(item: String, pageNumber: Int, resultsPerPage: Int): List<String> {
+        var searchedItem=item.trim()
+        searchedItem = searchedItem.split(" ").joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
+        val resultsList = mutableListOf<String>()
+        var currentPage = pageNumber
+        var totalPages = 0
 
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            .build()
+        try {
+            val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .build()
 
-        val url = SEARCHURL
-        val api = Retrofit.Builder()
-            .baseUrl(url)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(SearchAPI::class.java)
+            val url = SEARCHURL
+            val api = Retrofit.Builder()
+                .baseUrl(url)
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(SearchAPI::class.java)
 
-        return suspendCoroutine { continuation ->
-            api.getIDFromName(item).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    if (response.isSuccessful) {
-                        Log.i(SEARCHTAG, "search received")
-                        Log.i(SEARCHTAG, "onResponse:${response.body()}")
+            do {
+                val call = api.getIDFromName(searchedItem, currentPage, resultsPerPage)
+                val response = call.execute()
+                if (response.isSuccessful) {
 
-                        var id: String
-                        var name: String
+                    val jsonObj = JSONObject(response.body()!!.string())
 
-                        val jsonObj = JSONObject(response.body()!!.string())
+                    val resultsArray = jsonObj.getJSONArray("Results")
+                    if (resultsArray.length() > 0) {
+                        for (index in 0 until resultsArray.length()) {
+                            val itemResult = resultsArray.getJSONObject(index)
+                            val resultName = itemResult.getString("Name")
 
-                        val resultsArray = jsonObj.getJSONArray("Results")
-                        if(resultsArray.length()>0){
-                            val itemFirstResultObject = resultsArray.getJSONObject(0)
-                            id = itemFirstResultObject?.getString("ID")!!
-                            name = itemFirstResultObject?.getString("Name")!!
+                            if(itemResult.getLong("ID")==4650L){
+                                val breakpoint2 = "here"
+                            }
+
+                            if (resultName == searchedItem) {
+                                val id = itemResult.getString("ID")!!
+                                resultsList.add(id)
+                                resultsList.add(resultName)
+                            }
                         }
-                        else{
-                            id = " "
-                            name = " "
-                        }
-
-                        continuation.resume(listOf(id,name))
-                    } else {
-                        Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
-                        Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
-                        continuation.resume(emptyList())
                     }
-                }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.i(SEARCHTAG, "onFailure: ${t.message}")
-                    continuation.resume(emptyList())
+                    totalPages = jsonObj.getJSONObject("Pagination").getInt("PageTotal")
+                    currentPage++
+
+                } else {
+                    Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
+                    Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
                 }
-            })
+            } while (currentPage <= totalPages && resultsList.isEmpty())
+
+        } catch (e: Exception) {
+            Log.i(SEARCHTAG, "Exception: ${e.message}")
         }
+
+        return resultsList
     }
 
     fun searchFunction(searchText: String, context: Context){
@@ -454,7 +455,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         var itemList= emptyList<String>()
 
         coroutineSearchScope.launch {
-            itemList = searchName(searchText)
+            itemList = searchName(searchText,1,100)
 
             var itemId: Long=0L
 
