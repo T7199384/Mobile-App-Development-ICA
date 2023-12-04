@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.t7199384.models.api
+package uk.ac.tees.mad.t7199384.utils.data.classes
 
 import java.util.Random
 import java.util.UUID

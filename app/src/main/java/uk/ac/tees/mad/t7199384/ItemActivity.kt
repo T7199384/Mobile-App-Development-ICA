@@ -48,16 +48,16 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uk.ac.tees.mad.t7199384.models.api.Item
+import uk.ac.tees.mad.t7199384.utils.data.classes.Item
 import uk.ac.tees.mad.t7199384.models.api.ItemAPI
-import uk.ac.tees.mad.t7199384.models.api.Listing
+import uk.ac.tees.mad.t7199384.utils.data.classes.Listing
 import uk.ac.tees.mad.t7199384.models.api.ListingTypeAdapter
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-import uk.ac.tees.mad.t7199384.models.api.fakeWorldData
+import uk.ac.tees.mad.t7199384.utils.data.classes.fakeWorldData
 
 class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 

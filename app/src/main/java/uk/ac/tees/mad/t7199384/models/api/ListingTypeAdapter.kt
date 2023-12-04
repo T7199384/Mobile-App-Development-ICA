@@ -5,6 +5,7 @@ import com.google.gson.JsonParser
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import uk.ac.tees.mad.t7199384.utils.data.classes.Listing
 
 class ListingTypeAdapter : TypeAdapter<Listing>() {
     override fun write(out: JsonWriter?, value: Listing?) {

@@ -59,12 +59,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uk.ac.tees.mad.t7199384.models.api.Marketable
+import uk.ac.tees.mad.t7199384.utils.data.classes.Marketable
 import uk.ac.tees.mad.t7199384.models.api.RateLimiter
 import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
 import uk.ac.tees.mad.t7199384.models.api.SearchAPI
-import uk.ac.tees.mad.t7199384.models.api.Update
-import uk.ac.tees.mad.t7199384.models.api.fakeUpdates
+import uk.ac.tees.mad.t7199384.utils.data.classes.Update
+import uk.ac.tees.mad.t7199384.utils.data.classes.fakeUpdates
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 import kotlin.coroutines.resume
@@ -244,7 +244,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
 
                 if (itemNameType.isEmpty()) {
-                    itemNameType = listOf("If you still see this you scrolled too fast!", "")
+                    itemNameType = listOf("LOADING", "")
                 }
 
                 Column(modifier = Modifier

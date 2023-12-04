@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.t7199384.models.api
+package uk.ac.tees.mad.t7199384.utils.data.classes
 
 import kotlinx.serialization.Serializable
 
@@ -21,7 +21,7 @@ sealed class Listing {
         val retainerName: String,
         val sellerID: String,
         val total: Int
-    ) :Listing()
+    ) : Listing()
 
     @Serializable
     data class WorldListing(
@@ -43,5 +43,5 @@ sealed class Listing {
         val retainerName: String,
         val sellerID: String,
         var total: Int
-    ) :Listing()
+    ) : Listing()
 }
