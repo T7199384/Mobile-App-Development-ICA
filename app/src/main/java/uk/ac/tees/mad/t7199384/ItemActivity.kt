@@ -39,6 +39,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -53,7 +54,9 @@ import uk.ac.tees.mad.t7199384.models.api.ItemAPI
 import uk.ac.tees.mad.t7199384.utils.data.classes.Listing
 import uk.ac.tees.mad.t7199384.models.api.ListingTypeAdapter
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
+import uk.ac.tees.mad.t7199384.utils.data.FavoritesButton
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
+import uk.ac.tees.mad.t7199384.utils.data.classes.FavsDatabase
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -68,6 +71,14 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         private set
 
     val fakeWorldData: Item = fakeWorldData()
+
+    var favDb= Room
+        .databaseBuilder(
+            this,
+            FavsDatabase::class.java,
+            "favs.db")
+        .createFromAsset("favs.db")
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@ItemActivity.getSharedPreferences(
@@ -135,6 +146,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                         .height(50.dp)
                                         .weight(.15f)
                                 ) {
+                                    FavoritesButton(db =favDb, itemID = itemId, name = itemName)
                                     WorldChangeButton()
                                 }
                             }

@@ -17,8 +17,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.t7199384.R
+import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 
 @Composable
 fun WorldChangeButton() {
@@ -89,4 +91,13 @@ private fun showAdditionalOptionsDialog(context: Context, worldOption: Int, worl
         }
         .setSingleChoiceItems(array,0,){ _, which -> currentWorld=array[which]}
         .show()
+}
+
+@Preview(showBackground = true)
+
+@Composable
+fun WorldButtonPreview() {
+    ICATheme() {
+        WorldChangeButton()
+    }
 }
