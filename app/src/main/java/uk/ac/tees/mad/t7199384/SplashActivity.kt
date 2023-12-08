@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@SplashActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        val world = sharedPref.getString("world", "Empty").toString()
+        var world = sharedPref.getString("world", "Empty").toString()
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -69,7 +69,6 @@ class SplashActivity : ComponentActivity() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(context)
         builder
             .setTitle("Choose world")
-            .setNegativeButton("Cancel"){_, _ -> }
             .setSingleChoiceItems(array,0,){ _, which ->
                 currentWorld=array[which]
                 val rLocation = "${array[which]}_array".lowercase()
@@ -88,10 +87,6 @@ class SplashActivity : ComponentActivity() {
         else{
             firstDialog.show()
         }
-
-        if(world!="Empty"){
-            CallIntent()
-        }
     }
 
     private fun showAdditionalOptionsDialog(context: Context, worldOption: Int, world:String) {
@@ -105,6 +100,7 @@ class SplashActivity : ComponentActivity() {
                 val edit = sharedPref.edit()
                 edit.putString("world",currentWorld)
                 edit.apply()
+                CallIntent()
             }
             .setSingleChoiceItems(array,0,){ _, which -> currentWorld=array[which]}
             .show()

@@ -34,15 +34,15 @@ class FavViewModel(appContext: Context) : ViewModel() {
         }
     }
 
-    fun insertFav(favorite: Favorites){
-        viewModelScope.launch {
+    suspend fun insertFav(favorite: Favorites){
+        withContext(Dispatchers.IO) {
             favDao.insertAll(favorite)
         }
     }
 
-    fun deleteFav(favorite: Favorites){
-        viewModelScope.launch {
-            favDao.delete(favorite)
+    suspend fun deleteFav(favorite: Favorites){
+        withContext(Dispatchers.IO) {
+            return@withContext favDao.delete(favorite)
         }
     }
 

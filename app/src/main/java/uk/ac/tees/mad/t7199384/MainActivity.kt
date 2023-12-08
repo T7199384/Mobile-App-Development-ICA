@@ -238,7 +238,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 )
             }
         }
-        LazyColumn(Modifier.fillMaxHeight(.85f)) {
+        LazyColumn(Modifier.fillMaxHeight(.83f)) {
             items(leastUpdate.size) { index ->
                 val lPost = leastUpdate[index]
 
@@ -497,7 +497,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
         Column(modifier=Modifier.fillMaxWidth()){
             Box(modifier= Modifier
-                .weight(1.1f)
+                .weight(.7f)
                 .fillMaxWidth())
             {
                 TextField(value = searchText,
@@ -506,6 +506,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         .background(Color.Black)
                         .border(1.dp, Color.Yellow)
                         .fillMaxWidth()
+                        .height(50.dp)
                         .onFocusChanged {
                             isFocused = it.isFocused
                             if (isFocused) {
@@ -617,7 +618,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 )
             }
         }
-        LazyColumn(Modifier.fillMaxHeight(.85f)) {
+        LazyColumn(Modifier.fillMaxHeight(.83f)) {
             items(leastUpdate.size) { index ->
                 val mPost = leastUpdate[index]
 

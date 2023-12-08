@@ -1,6 +1,7 @@
 package uk.ac.tees.mad.t7199384
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -127,11 +129,17 @@ fun FavoritesScreen(viewModel: FavViewModel){
         }
     }
 }
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun FavoriteItem(
         fav: Favorites,
         onSelect: (fav: Favorites) -> Unit = {}) {
-        Card{
+        Card(
+            onClick = { val intent = Intent(this@FavoritesActivity, ItemActivity::class.java)
+                intent.putExtra("itemId", fav.itemID)
+                intent.putExtra("itemName", fav.itemName)
+                this@FavoritesActivity.startActivity(intent) }
+        ){
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
