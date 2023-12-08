@@ -48,6 +48,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,6 +66,7 @@ import uk.ac.tees.mad.t7199384.utils.data.classes.Marketable
 import uk.ac.tees.mad.t7199384.models.api.RateLimiter
 import uk.ac.tees.mad.t7199384.models.api.RecentUpdatesAPI
 import uk.ac.tees.mad.t7199384.models.api.SearchAPI
+import uk.ac.tees.mad.t7199384.models.api.taxAPI
 import uk.ac.tees.mad.t7199384.utils.data.classes.Update
 import uk.ac.tees.mad.t7199384.utils.data.classes.fakeUpdates
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
@@ -75,8 +78,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     private val baseURL = "https://universalis.app/api/v2/extra/stats/"
     private val searchURL = "https://xivapi.com/"
+    private val taxURL = "https://universalis.app/api/v2/"
     private val tag = "CHECK_RESPONSE_UPDATE"
     private val searchTag = "CHECK_SEARCH_RESPONSE_UPDATE"
+    private val taxTag = "CHECK_TAX_RESPONSE_UPDATE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
@@ -112,6 +117,17 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     onDispose {}
                 }
 
+                var taxes:Map<String,Any> by remember { mutableStateOf(emptyMap()) }
+
+                DisposableEffect(key1 = Unit) {
+                    coroutineScope.launch {
+                        val taxesResult = getTaxeList(worldText)
+
+                        taxes = taxesResult
+                    }
+                    onDispose {}
+                }
+
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
                     Column (
                         Modifier
@@ -120,11 +136,11 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         Row(horizontalArrangement = Arrangement.SpaceBetween) {
                             Box(
                                 Modifier
-                                    .height(55.dp)
+                                    .height(85.dp)
                                     .weight(1f),
                                 contentAlignment= Alignment.CenterStart
                             ) {
-                                Greeting(worldText)
+                                Greeting(worldText,taxes)
                             }
                             Box(
                                 modifier = Modifier
@@ -152,14 +168,76 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 
-    @Composable
-    fun Greeting(world: String) {
-        val worldGreeting by remember{mutableStateOf(world)}
+    suspend fun getTaxeList(world: String) :Map<String, Any>{
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .addInterceptor(RateLimiter())
+            .build()
 
-        Text(
-            text = "Welcome to $worldGreeting's market!",
-            style = TextStyle.Default.copy(fontSize=18.sp, fontWeight = FontWeight.ExtraBold)
-        )
+        val url = taxURL
+        val api = Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(taxAPI::class.java)
+
+            return suspendCoroutine { continuation ->
+                api.getTaxes(world).enqueue(object : Callback<ResponseBody> {
+                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                        if (response.isSuccessful) {
+                            Log.i(tag, "listings received")
+                            Log.i(tag, "onResponse:${response.body()}")
+
+                            val body = response.body()
+                            val taxMap: Map<String, Any> = Gson().fromJson(
+                                body?.charStream(),
+                                object : TypeToken<Map<String, Any>>() {}.type
+                            )
+
+                            continuation.resume(taxMap)
+                        } else {
+                            Log.i(tag, "receive failed: ${response.code()} with $url")
+                            Log.i(tag, "Error response: ${response.errorBody()?.string()}")
+                            continuation.resume(emptyMap())
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        Log.i(tag, "onFailure: ${t.message}")
+                        continuation.resume(emptyMap())
+                    }
+                })
+            }
+    }
+
+    @Composable
+    fun Greeting(world: String, taxes: Map<String, Any>) {
+        val worldGreeting by remember { mutableStateOf(world) }
+
+        Column {
+            Text(
+                text = "Welcome to $worldGreeting's market!",
+                style = TextStyle.Default.copy(fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+            )
+
+            if (taxes.isNotEmpty()) {
+                val limsaValue = (taxes["Limsa Lominsa"] as? Number)?.toInt()
+                val gridaniaValue = (taxes["Gridania"] as? Number)?.toInt()
+                val uldahValue = (taxes["Ul'dah"] as? Number)?.toInt()
+                val ishgardValue = (taxes["Ishgard"] as? Number)?.toInt()
+                val kuganeValue = (taxes["Kugane"] as? Number)?.toInt()
+                val crystariumValue = (taxes["Crystarium"] as? Number)?.toInt()
+                val sharlayanValue = (taxes["Old Sharlayan"] as? Number)?.toInt()
+
+                Text(text = "Limsa: ${limsaValue}%  Gridania: ${gridaniaValue}%  Ul'Dah: ${uldahValue}%",
+                    style = TextStyle.Default.copy(fontSize=15.sp))
+                Text(text = "Ishgard: ${ishgardValue}% Kugane: ${kuganeValue}%",
+                    style = TextStyle.Default.copy(fontSize=15.sp))
+                Text(text = "Crystarium: ${crystariumValue}%  Sharlayan: ${sharlayanValue}%",
+                    style = TextStyle.Default.copy(fontSize=15.sp))
+            }
+        }
     }
 
     @Composable
@@ -198,7 +276,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
 
                 if (itemNameType.isEmpty()) {
-                    itemNameType = listOf("If you still see this you scrolled too fast!", "")
+                    itemNameType = listOf("LOADING", "")
                 }
 
                 Column(modifier = Modifier
@@ -502,7 +580,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             {
                 TextField(value = searchText,
                     onValueChange = {searchText=it},
-                    modifier=Modifier
+                    modifier= Modifier
                         .background(Color.Black)
                         .border(1.dp, Color.Yellow)
                         .fillMaxWidth()
@@ -531,6 +609,16 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         val mostUpdatedPosts=updatePreview()
         val leastUpdatedPosts =updatePreview()
 
+        val taxMap: Map<String, Any> = mapOf(
+            "Limsa Lominsa" to 5,
+            "Gridania" to 5,
+            "Ul'dah" to 5,
+            "Ishgard" to 3,
+            "Kugane" to 3,
+            "Crystarium" to 3,
+            "Old Sharlayan" to 3
+        )
+
         ICATheme {
             Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
                 Column (
@@ -540,11 +628,11 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     Row(horizontalArrangement = Arrangement.SpaceBetween) {
                         Box(
                             Modifier
-                                .height(55.dp)
+                                .height(85.dp)
                                 .weight(1f),
                             contentAlignment= Alignment.CenterStart
                         ) {
-                            Greeting("Crystal")
+                            Greeting("Crystal",taxMap)
                         }
                         Box(
                             modifier = Modifier
