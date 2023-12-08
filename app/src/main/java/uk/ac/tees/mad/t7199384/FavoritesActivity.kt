@@ -36,10 +36,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
@@ -121,11 +119,21 @@ fun DeleteButton(index: Long, favsDb: FavsDatabase?){
 
 @Composable
 fun FavoritesScreen(viewModel: FavViewModel){
-    val context = LocalContext.current
 
     LazyColumn(modifier=Modifier.fillMaxWidth()){
         items(viewModel.state.value) {
-            FavoriteItem(it,{})
+                FavoriteItem(it,{})
+        }
+    }
+    if(viewModel.state.value.isEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "No favorites have been added")
         }
     }
 }
@@ -174,6 +182,8 @@ fun FavoritesPreview() {
         Favorites(4.toLong(),"Professional's Boots of Gathering", 123412),
     )
 
+    //favList= listOf<Favorites>()
+
     ICATheme {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
@@ -201,26 +211,40 @@ fun FavoritesPreview() {
                 LazyColumn(modifier=Modifier.fillMaxWidth()){
                     items(favList.size) { index ->
                         val favItem = favList[index]
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "${favItem.itemID}")
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column(
+                            Row(
                                 modifier = Modifier
-                                    .weight(.5f)
-                                    .fillMaxWidth()){
-                                Text(text = "${favItem.itemName}", maxLines = 2, modifier=Modifier.fillMaxWidth())
+                                    .fillMaxWidth()
+                                    .padding(5.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = "${favItem.itemID}")
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(
+                                    modifier = Modifier
+                                        .weight(.5f)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "${favItem.itemName}",
+                                        maxLines = 2,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(.01f))
+                                DeleteButton(index.toLong(), null)
+                                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
                             }
-                            Spacer(modifier = Modifier.weight(.01f))
-                            DeleteButton(index.toLong(), null)
-                            Spacer(modifier = Modifier.padding(horizontal = 5.dp))
-                        }
-
+                    }
+                }
+                if(favList.isEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                        ,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "No favorites have been added")
                     }
                 }
             }
