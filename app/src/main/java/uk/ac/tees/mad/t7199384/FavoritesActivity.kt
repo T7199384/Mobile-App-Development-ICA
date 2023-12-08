@@ -19,11 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,36 +34,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
-import uk.ac.tees.mad.t7199384.utils.data.classes.Favorites
-import uk.ac.tees.mad.t7199384.utils.data.classes.FavsDatabase
+import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
+import uk.ac.tees.mad.t7199384.utils.data.db.Favorites
+import uk.ac.tees.mad.t7199384.utils.data.db.FavsDatabase
 
 class FavoritesActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
-
+    init {
+        app = this
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPref = this@FavoritesActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        val world = sharedPref.getString("world", "Empty").toString()
-
-        var favDb= Room
-            .databaseBuilder(
-                this,
-                FavsDatabase::class.java,
-                "favs.db")
-            .createFromAsset("favs.db")
-            .build()
-
-        var favList = favDb.FavoritesDao().getAll()
-
-        sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
-
                 Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
                     Column(
                         Modifier
@@ -86,16 +76,21 @@ class FavoritesActivity : ComponentActivity(),SharedPreferences.OnSharedPreferen
                                 WorldChangeButton()
                             }
                         }
+                        FavoritesScreen(FavViewModel(getAppContext()))
                     }
                 }
         }
     }
 }
 
+    companion object {
+        private lateinit var app: FavoritesActivity
+        fun getAppContext() : Context = app.applicationContext
+    }
+
     
 @Composable
 fun FavoritesGreeting() {
-
     Text(
         text = "Favorites' List",
     )
@@ -110,7 +105,7 @@ fun DeleteButton(index: Long, favsDb: FavsDatabase?){
             shape = CircleShape.copy(all = CornerSize(5.dp))
         ) )
     {
-        IconButton(onClick = { favsDb!!.FavoritesDao().delete(favsDb.FavoritesDao().findByIndex(index))},
+        IconButton(onClick = { favsDb!!.dao.delete(favsDb.dao.findByIndex(index))},
             content = {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -121,6 +116,42 @@ fun DeleteButton(index: Long, favsDb: FavsDatabase?){
             })
     }
 }
+
+@Composable
+fun FavoritesScreen(viewModel: FavViewModel){
+    val context = LocalContext.current
+
+    LazyColumn(modifier=Modifier.fillMaxWidth()){
+        items(viewModel.state.value) {
+            FavoriteItem(it,{})
+        }
+    }
+}
+    @Composable
+    fun FavoriteItem(
+        fav: Favorites,
+        onSelect: (fav: Favorites) -> Unit = {}) {
+        Card{
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "${fav.itemID}")
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(.5f)
+                        .fillMaxWidth()){
+                    Text(text = "${fav.itemName}", maxLines = 2, modifier=Modifier.fillMaxWidth())
+                }
+                Spacer(modifier = Modifier.weight(.01f))
+                DeleteButton(fav.uid, null)
+                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+            }
+        }
+    }
 
 @Preview(showBackground = true)
 
@@ -172,7 +203,9 @@ fun FavoritesPreview() {
                             Text(text = "${favItem.itemID}")
                             Spacer(modifier = Modifier.width(10.dp))
                             Column(
-                                modifier = Modifier.weight(.5f).fillMaxWidth()){
+                                modifier = Modifier
+                                    .weight(.5f)
+                                    .fillMaxWidth()){
                                 Text(text = "${favItem.itemName}", maxLines = 2, modifier=Modifier.fillMaxWidth())
                             }
                             Spacer(modifier = Modifier.weight(.01f))

@@ -19,7 +19,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,12 +39,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.Room
+import androidx.lifecycle.ViewModelProvider
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -56,11 +62,11 @@ import uk.ac.tees.mad.t7199384.models.api.ListingTypeAdapter
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.FavoritesButton
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
-import uk.ac.tees.mad.t7199384.utils.data.classes.FavsDatabase
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 import uk.ac.tees.mad.t7199384.utils.data.classes.fakeWorldData
+import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
 
 class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -72,13 +78,11 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
 
     val fakeWorldData: Item = fakeWorldData()
 
-    var favDb= Room
-        .databaseBuilder(
-            this,
-            FavsDatabase::class.java,
-            "favs.db")
-        .createFromAsset("favs.db")
-        .build()
+    private lateinit var favViewModel: FavViewModel
+
+    init {
+        app = this
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@ItemActivity.getSharedPreferences(
@@ -93,6 +97,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
+        favViewModel = FavViewModel(ItemActivity.getAppContext())
         setContent {
             ICATheme {
                 val worldText by remember { mutableStateOf(world) }
@@ -146,7 +151,13 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                                         .height(50.dp)
                                         .weight(.15f)
                                 ) {
-                                    FavoritesButton(db =favDb, itemID = itemId, name = itemName)
+                                    FavoritesButton(viewModel =favViewModel, itemID = itemId, name = itemName)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .height(50.dp)
+                                        .weight(.15f)
+                                ) {
                                     WorldChangeButton()
                                 }
                             }
@@ -157,6 +168,10 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                 }
             }
         }
+    }
+    companion object {
+        private lateinit var app: ItemActivity
+        fun getAppContext() : Context = app.applicationContext
     }
     override fun onBackPressed() {
 
@@ -443,6 +458,20 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                             contentAlignment = Alignment.CenterStart
                         ) {
                             ItemDesc("Boiled Egg", 4650, 5, 80, 2, 40)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .height(50.dp)
+                                .weight(.15f)
+                        ) {
+                            IconButton(onClick = { }) {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    "Favorite",
+                                    tint = Color.Red,
+                                    modifier = Modifier.clip(CircleShape)
+                                )
+                            }
                         }
                         Box(
                             modifier = Modifier

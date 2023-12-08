@@ -1,10 +1,9 @@
-package uk.ac.tees.mad.t7199384.models.api
+package uk.ac.tees.mad.t7199384.utils.data.db
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import uk.ac.tees.mad.t7199384.utils.data.classes.Favorites
 
 @Dao
 interface FavoritesDao {

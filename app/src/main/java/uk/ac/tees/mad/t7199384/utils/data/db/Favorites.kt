@@ -1,10 +1,10 @@
-package uk.ac.tees.mad.t7199384.utils.data.classes
+package uk.ac.tees.mad.t7199384.utils.data.db
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity
+@Entity(tableName = "favorites")
 data class Favorites (
     @PrimaryKey(autoGenerate = true) val uid: Long= 0,
     @ColumnInfo(name = "item_name") val itemName: String?,

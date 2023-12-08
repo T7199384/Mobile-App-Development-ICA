@@ -1,5 +1,7 @@
 package uk.ac.tees.mad.t7199384
 
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -32,31 +35,93 @@ import androidx.compose.ui.unit.sp
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = this@SplashActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
+        val world = sharedPref.getString("world", "Empty").toString()
+
         super.onCreate(savedInstanceState)
         setContent {
             ICATheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color.White
                 ) {
                     SplashGreeting("Kupo Mart")
                 }
             }
         }
 
-        //TODO Copy dialog function into if statement and have the handler run in the confirm
-        //TODO Curly Brackets and if the sharedpreferences is saved, handler is in the else statement
+        val context = this@SplashActivity
+        val array: Array<String> = context.resources.getStringArray(R.array.world_array)
 
+        var dialog: AlertDialog? = null
+
+        fun dialogSet(dialog_: AlertDialog){
+            dialog = dialog_
+        }
+
+        fun dialogGet(): AlertDialog? {
+            return dialog
+        }
+
+        var currentWorld:String
+
+        val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+        builder
+            .setTitle("Choose world")
+            .setNegativeButton("Cancel"){_, _ -> }
+            .setSingleChoiceItems(array,0,){ _, which ->
+                currentWorld=array[which]
+                val rLocation = "${array[which]}_array".lowercase()
+                val rID = context.resources.getIdentifier(rLocation,"array",context.packageName)
+                dialog=dialogGet()
+                dialog?.dismiss()
+                showAdditionalOptionsDialog(context,rID,currentWorld)
+            }
+
+        val firstDialog = builder.create()
+        dialogSet(firstDialog)
+
+        if(world!="Empty"){
+            CallIntent()
+        }
+        else{
+            firstDialog.show()
+        }
+
+        if(world!="Empty"){
+            CallIntent()
+        }
+    }
+
+    private fun showAdditionalOptionsDialog(context: Context, worldOption: Int, world:String) {
+        val array: Array<String> = context.resources.getStringArray(worldOption)
+        var currentWorld=world
+
+        AlertDialog.Builder(context)
+            .setTitle("Additional Options for $world")
+            .setPositiveButton("Confirm"){_, _ ->
+                val sharedPref = context.getSharedPreferences(context.resources.getString(R.string.world_file_key), Context.MODE_PRIVATE)
+                val edit = sharedPref.edit()
+                edit.putString("world",currentWorld)
+                edit.apply()
+            }
+            .setSingleChoiceItems(array,0,){ _, which -> currentWorld=array[which]}
+            .show()
+    }
+
+
+    private fun CallIntent(){
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = Intent(this@SplashActivity,MainActivity::class.java)
             startActivity(intent)
-        }, 1) //set to 3000 later
+        }, 3000)
     }
 }
 
+
 @Composable
-fun SplashGreeting(title: String, modifier: Modifier = Modifier) {
+fun SplashGreeting(title: String) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

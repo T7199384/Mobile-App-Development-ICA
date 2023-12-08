@@ -5,16 +5,12 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +20,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -46,9 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -80,10 +73,10 @@ import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val BASEURL = "https://universalis.app/api/v2/extra/stats/"
-    private val SEARCHURL = "https://xivapi.com/"
-    private val TAG = "CHECK_RESPONSE_UPDATE"
-    private val SEARCHTAG = "CHECK_SEARCH_RESPONSE_UPDATE"
+    private val baseURL = "https://universalis.app/api/v2/extra/stats/"
+    private val searchURL = "https://xivapi.com/"
+    private val tag = "CHECK_RESPONSE_UPDATE"
+    private val searchTag = "CHECK_SEARCH_RESPONSE_UPDATE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@MainActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
@@ -141,6 +134,17 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                                 WorldChangeButton()
                             }
                         }
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(this@MainActivity, FavoritesActivity::class.java)
+                                startActivity(intent)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        ) {
+                            Text("Go to Favorites")
+                        }
                         UpdateView(mostUpdatedPosts,leastUpdatedPosts)
                     }
                 }
@@ -162,7 +166,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
     fun UpdateView(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>) {
         val context = LocalContext.current
 
-        Column() {
+        Column {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -279,16 +283,8 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
             }
         }
-        searchBar()
+        SearchBar()
     }
-
-
-
-    fun onSwipeRight() {
-        val intent = Intent(this@MainActivity, FavoritesActivity::class.java)
-        this@MainActivity.startActivity(intent)
-    }
-
 
     private suspend fun getUpdate(world: String, s: String): List<Marketable> {
         val okHttpClient = OkHttpClient.Builder()
@@ -296,7 +292,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             .addInterceptor(RateLimiter())
             .build()
 
-        val url = BASEURL
+        val url = baseURL
         val api = Retrofit.Builder()
             .baseUrl(url)
             .client(okHttpClient)
@@ -309,22 +305,22 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 api.getMostRecentUpdates(world).enqueue(object : Callback<Update> {
                     override fun onResponse(call: Call<Update>, response: Response<Update>) {
                         if (response.isSuccessful) {
-                            Log.i(TAG, "listings received")
-                            Log.i(TAG, "onResponse:${response.body()}")
+                            Log.i(tag, "listings received")
+                            Log.i(tag, "onResponse:${response.body()}")
 
                             val body = response.body()
                             val marketables: List<Marketable> = body?.items ?: emptyList()
 
                             continuation.resume(marketables)
                         } else {
-                            Log.i(TAG, "receive failed: ${response.code()} with $url")
-                            Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                            Log.i(tag, "receive failed: ${response.code()} with $url")
+                            Log.i(tag, "Error response: ${response.errorBody()?.string()}")
                             continuation.resume(emptyList())
                         }
                     }
 
                     override fun onFailure(call: Call<Update>, t: Throwable) {
-                        Log.i(TAG, "onFailure: ${t.message}")
+                        Log.i(tag, "onFailure: ${t.message}")
                         continuation.resume(emptyList())
                     }
                 })
@@ -335,22 +331,22 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 api.getLeastRecentUpdates(world).enqueue(object : Callback<Update> {
                     override fun onResponse(call: Call<Update>, response: Response<Update>) {
                         if (response.isSuccessful) {
-                            Log.i(TAG, "listings received")
-                            Log.i(TAG, "onResponse:${response.body()}")
+                            Log.i(tag, "listings received")
+                            Log.i(tag, "onResponse:${response.body()}")
 
                             val body = response.body()
                             val marketables: List<Marketable> = body?.items ?: emptyList()
 
                             continuation.resume(marketables)
                         } else {
-                            Log.i(TAG, "receive failed: ${response.code()} with $url")
-                            Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                            Log.i(tag, "receive failed: ${response.code()} with $url")
+                            Log.i(tag, "Error response: ${response.errorBody()?.string()}")
                             continuation.resume(emptyList())
                         }
                     }
 
                     override fun onFailure(call: Call<Update>, t: Throwable) {
-                        Log.i(TAG, "onFailure: ${t.message}")
+                        Log.i(tag, "onFailure: ${t.message}")
                         continuation.resume(emptyList())
                     }
                 })
@@ -363,7 +359,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
 
-        val url = SEARCHURL
+        val url = searchURL
         val api = Retrofit.Builder()
             .baseUrl(url)
             .client(okHttpClient)
@@ -375,8 +371,8 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             api.getNameFromID(itemId).enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     if (response.isSuccessful) {
-                        Log.i(SEARCHTAG, "search received")
-                        Log.i(SEARCHTAG, "onResponse:${response.body()}")
+                        Log.i(searchTag, "search received")
+                        Log.i(searchTag, "onResponse:${response.body()}")
 
                         val name:String
                         val type:String
@@ -387,27 +383,27 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                         val itemKindObject = jsonObj.optJSONObject("ItemKind")
                         type = itemKindObject?.opt("Name").toString()
 
-                        val resultList = listOf<String>(name,type)
+                        val resultList = listOf(name,type)
 
                         continuation.resume(resultList)
                     } else {
-                        Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
-                        Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
+                        Log.i(searchTag, "receive failed: ${response.code()} with $url")
+                        Log.i(searchTag, "Error response: ${response.errorBody()?.string()}")
                         continuation.resume(emptyList())
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.i(SEARCHTAG, "onFailure: ${t.message}")
+                    Log.i(searchTag, "onFailure: ${t.message}")
                     continuation.resume(emptyList())
                 }
             })
         }
     }
 
-    private fun searchName(item: String, pageNumber: Int, resultsPerPage: Int): List<String> {
+    private fun searchName(item: String, pageNumber: Int=1, resultsPerPage: Int=100): List<String> {
         var searchedItem=item.trim()
-        searchedItem = searchedItem.split(" ").joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
+        searchedItem = searchedItem.split(" ").joinToString(" ") { it -> it.replaceFirstChar { it.uppercase() } }
         val resultsList = mutableListOf<String>()
         var currentPage = pageNumber
         var totalPages = 0
@@ -417,7 +413,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build()
 
-            val url = SEARCHURL
+            val url = searchURL
             val api = Retrofit.Builder()
                 .baseUrl(url)
                 .client(okHttpClient)
@@ -440,7 +436,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
 
                             if (resultName == searchedItem) {
-                                val id = itemResult.getString("ID")!!
+                                val id = itemResult.getString("ID")
                                 resultsList.add(id)
                                 resultsList.add(resultName)
                             }
@@ -451,33 +447,33 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                     currentPage++
 
                 } else {
-                    Log.i(SEARCHTAG, "receive failed: ${response.code()} with $url")
-                    Log.i(SEARCHTAG, "Error response: ${response.errorBody()?.string()}")
+                    Log.i(searchTag, "receive failed: ${response.code()} with $url")
+                    Log.i(searchTag, "Error response: ${response.errorBody()?.string()}")
                 }
             } while (currentPage <= totalPages && resultsList.isEmpty())
 
         } catch (e: Exception) {
-            Log.i(SEARCHTAG, "Exception: ${e.message}")
+            Log.i(searchTag, "Exception: ${e.message}")
         }
 
         return resultsList
     }
 
-    fun searchFunction(searchText: String, context: Context){
+    private fun searchFunction(searchText: String, context: Context){
         val coroutineSearchScope = CoroutineScope(Dispatchers.Default)
-        var itemList= emptyList<String>()
+        var itemList:List<String>
 
         coroutineSearchScope.launch {
-            itemList = searchName(searchText,1,100)
+            itemList = searchName(searchText)
 
-            var itemId: Long=0L
+            var itemId=0L
 
             if(itemList[0]!=" "){
                 itemId=itemList[0].toLong()
             }
-            var itemName=itemList[1]
+            val itemName=itemList[1]
 
-            if(!itemList.isEmpty()){
+            if(itemList.isNotEmpty()){
                 val intent = Intent(context, ItemActivity::class.java)
                 intent.putExtra("itemId", itemId)
                 intent.putExtra("itemName", itemName)
@@ -494,12 +490,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun searchBar()
+    fun SearchBar()
     {
         var searchText by remember { mutableStateOf("Search") }
         var isFocused by remember { mutableStateOf(false) }
-
-        val context=LocalContext.current
 
         Column(modifier=Modifier.fillMaxWidth()){
             Box(modifier= Modifier
@@ -533,8 +527,8 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     @Composable
     fun GreetingPreview() {
-        val mostUpdatedPosts=UpdatePreview()
-        val leastUpdatedPosts =UpdatePreview()
+        val mostUpdatedPosts=updatePreview()
+        val leastUpdatedPosts =updatePreview()
 
         ICATheme {
             Surface( modifier = Modifier.fillMaxSize(),color = MaterialTheme.colorScheme.background) {
@@ -559,6 +553,17 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                             WorldChangeButton()
                         }
                     }
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(this@MainActivity, FavoritesActivity::class.java)
+                            startActivity(intent)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp)
+                    ) {
+                        Text("Go to Favorites",style = TextStyle.Default.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+                    }
                     UpdateViewPreview(mostUpdatedPosts,leastUpdatedPosts)
                 }
             }
@@ -567,7 +572,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
     @Composable
     fun UpdateViewPreview(mostUpdate: List<Marketable>, leastUpdate: List<Marketable>){
-        Column (){
+        Column {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -633,10 +638,10 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
                 }
             }
         }
-        searchBar()
+        SearchBar()
     }
 
-    fun UpdatePreview(): List<Marketable>{
+    private fun updatePreview(): List<Marketable>{
         return fakeUpdates()
     }
 

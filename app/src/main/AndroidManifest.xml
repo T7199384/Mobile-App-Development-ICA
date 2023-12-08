@@ -15,7 +15,7 @@
         android:theme="@style/Theme.ICA"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/Theme.ICA">
@@ -29,7 +29,10 @@
             android:name=".ItemActivity"
             android:theme="@style/Theme.ICA">
         </activity>
-        <activity android:name=".SplashActivity"
+        <activity android:name=".MainActivity"
+            android:theme="@style/Theme.ICA">
+        </activity>
+        <activity android:name=".FavoritesActivity"
             android:theme="@style/Theme.ICA">
         </activity>
     </application>
