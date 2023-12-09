@@ -45,7 +45,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -70,13 +69,12 @@ import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
 
 class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val BASEURL: String = "https://universalis.app/api/v2/"
-    private val TAG: String = "CHECK_RESPONSE_ITEM"
+    private val baseURL: String = "https://universalis.app/api/v2/"
+    private val tag: String = "CHECK_RESPONSE_ITEM"
 
-    var hqflag: Boolean by mutableStateOf(true)
-        private set
+    private var hqFlag: Boolean by mutableStateOf(true)
 
-    val fakeWorldData: Item = fakeWorldData()
+    private val fakeWorldData: Item = fakeWorldData()
 
     private lateinit var favViewModel: FavViewModel
 
@@ -97,11 +95,11 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         sharedPref.registerOnSharedPreferenceChangeListener(this)
 
         super.onCreate(savedInstanceState)
-        favViewModel = FavViewModel(ItemActivity.getAppContext())
+        favViewModel = FavViewModel(getAppContext())
         setContent {
             ICATheme {
                 val worldText by remember { mutableStateOf(world) }
-                val hqState = rememberUpdatedState(newValue = (hqflag))
+                val hqState = rememberUpdatedState(newValue = (hqFlag))
 
                                 val coroutineScope = rememberCoroutineScope()
 
@@ -173,6 +171,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
         private lateinit var app: ItemActivity
         fun getAppContext() : Context = app.applicationContext
     }
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
 
         val intent = Intent(this, MainActivity::class.java)
@@ -221,7 +220,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
 
-        val url = BASEURL
+        val url = baseURL
 
         val gson = GsonBuilder()
             .registerTypeAdapter(Listing::class.java, ListingTypeAdapter())
@@ -237,21 +236,21 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             api.getItem(world, itemID.toString()).enqueue(object : Callback<Item?> {
                 override fun onResponse(call: Call<Item?>, response: Response<Item?>) {
                     if (response.isSuccessful) {
-                        Log.i(TAG, "listings received")
-                        Log.i(TAG, "onResponse:${response.body()}")
+                        Log.i(tag, "listings received")
+                        Log.i(tag, "onResponse:${response.body()}")
 
                         val item: Item? = response.body()
 
                         continuation.resume(item)
                     } else {
-                        Log.i(TAG, "receive failed: ${response.code()} with $url")
-                        Log.i(TAG, "Error response: ${response.errorBody()?.string()}")
+                        Log.i(tag, "receive failed: ${response.code()} with $url")
+                        Log.i(tag, "Error response: ${response.errorBody()?.string()}")
                         continuation.resume(null)
                     }
                 }
 
                 override fun onFailure(call: Call<Item?>, t: Throwable) {
-                    Log.i(TAG, "onFailure: ${t.message}")
+                    Log.i(tag, "onFailure: ${t.message}")
                     continuation.resume(null)
                 }
             })
@@ -274,7 +273,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             Text(
                 text = "$name       $id"
             )
-            Row (){
+            Row {
                 Column {
                     Text(text = "Cheapest HQ", style = TextStyle.Default.copy(fontSize = 10.sp))
                     Text(
@@ -333,11 +332,11 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     private fun qualityChange(boolean: Boolean) {
-        hqflag = boolean
+        hqFlag = boolean
     }
 
     @Composable
-    fun Listing(world: String, data: Item, hqflag: Boolean) {
+    fun Listing(world: String, data: Item, hqFlag: Boolean) {
 
         var averagePrice = data.averagePrice
 
@@ -368,7 +367,7 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
 
         var viewListings: List<Listing> = listingsNQ
 
-        if (hqflag) {
+        if (hqFlag) {
             viewListings = listingsHQ
         }
 

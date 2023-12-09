@@ -1,5 +1,6 @@
 package uk.ac.tees.mad.t7199384
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -9,7 +10,6 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,10 +33,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
+    @SuppressLint("DiscouragedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = this@SplashActivity.getSharedPreferences(getString(R.string.world_file_key), Context.MODE_PRIVATE)
-        var world = sharedPref.getString("world", "Empty").toString()
+        val world = sharedPref.getString("world", "Empty").toString()
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -69,7 +71,7 @@ class SplashActivity : ComponentActivity() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(context)
         builder
             .setTitle("Choose world")
-            .setSingleChoiceItems(array,0,){ _, which ->
+            .setSingleChoiceItems(array,0){ _, which ->
                 currentWorld=array[which]
                 val rLocation = "${array[which]}_array".lowercase()
                 val rID = context.resources.getIdentifier(rLocation,"array",context.packageName)
@@ -82,7 +84,7 @@ class SplashActivity : ComponentActivity() {
         dialogSet(firstDialog)
 
         if(world!="Empty"){
-            CallIntent()
+            callIntent()
         }
         else{
             firstDialog.show()
@@ -100,14 +102,14 @@ class SplashActivity : ComponentActivity() {
                 val edit = sharedPref.edit()
                 edit.putString("world",currentWorld)
                 edit.apply()
-                CallIntent()
+                callIntent()
             }
-            .setSingleChoiceItems(array,0,){ _, which -> currentWorld=array[which]}
+            .setSingleChoiceItems(array,0){ _, which -> currentWorld=array[which]}
             .show()
     }
 
 
-    private fun CallIntent(){
+    private fun callIntent(){
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = Intent(this@SplashActivity,MainActivity::class.java)
             startActivity(intent)

@@ -38,11 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.WorldChangeButton
 import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
 import uk.ac.tees.mad.t7199384.utils.data.db.Favorites
-import uk.ac.tees.mad.t7199384.utils.data.db.FavsDatabase
 
 class FavoritesActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceChangeListener {
     init {
@@ -97,15 +98,22 @@ fun FavoritesGreeting() {
 }
 
 @Composable
-fun DeleteButton(index: Long, favsDb: FavsDatabase?){
-    Box(modifier = Modifier
-        .size(24.dp)
-        .background(
-            color = Color.Red,
-            shape = CircleShape.copy(all = CornerSize(5.dp))
-        ) )
+fun DeleteButton(index: Long?, viewModel: FavViewModel?) {
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .background(
+                color = Color.Red,
+                shape = CircleShape.copy(all = CornerSize(5.dp))
+            )
+    )
     {
-        IconButton(onClick = { favsDb!!.dao.delete(favsDb.dao.findByIndex(index))},
+        IconButton(onClick = {
+            viewModel?.viewModelScope?.launch {
+                viewModel.deleteFav(viewModel.findFavoriteById(index!!))
+                recreate()
+            }
+        },
             content = {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -122,7 +130,7 @@ fun FavoritesScreen(viewModel: FavViewModel){
 
     LazyColumn(modifier=Modifier.fillMaxWidth()){
         items(viewModel.state.value) {
-                FavoriteItem(it,{})
+                FavoriteItem(it) {}
         }
     }
     if(viewModel.state.value.isEmpty()) {
@@ -137,6 +145,7 @@ fun FavoritesScreen(viewModel: FavViewModel){
         }
     }
 }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun FavoriteItem(
@@ -163,7 +172,7 @@ fun FavoritesScreen(viewModel: FavViewModel){
                     Text(text = "${fav.itemName}", maxLines = 2, modifier=Modifier.fillMaxWidth())
                 }
                 Spacer(modifier = Modifier.weight(.01f))
-                DeleteButton(fav.uid, null)
+                DeleteButton(fav.itemID, FavViewModel(getAppContext()))
                 Spacer(modifier = Modifier.padding(horizontal = 5.dp))
             }
         }
@@ -175,7 +184,7 @@ fun FavoritesScreen(viewModel: FavViewModel){
 @Composable
 fun FavoritesPreview() {
 
-    var favList = listOf<Favorites>(
+    val favList = listOf(
         Favorites(1.toLong(),"Boiled Egg", 6240),
         Favorites(2.toLong(),"Leather", 30454),
         Favorites(3.toLong(),"Hard Leather", 2342),
@@ -211,7 +220,7 @@ fun FavoritesPreview() {
                 LazyColumn(modifier=Modifier.fillMaxWidth()){
                     items(favList.size) { index ->
                         val favItem = favList[index]
-                            Row(
+                        Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(5.dp),

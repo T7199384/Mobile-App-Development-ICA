@@ -17,7 +17,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import uk.ac.tees.mad.t7199384.ui.theme.ICATheme
 import uk.ac.tees.mad.t7199384.utils.data.db.FavViewModel
 import uk.ac.tees.mad.t7199384.utils.data.db.Favorites
-import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +37,7 @@ fun FavoritesButton(viewModel: FavViewModel?, itemID: Long, name: String) {
         viewModel?.let {
             myCoroutineScope.launch {
                 isFavorite = if (isFavorite) {
-                    it.deleteFav(it.findFavoriteById(itemID)!!)
+                    it.deleteFav(it.findFavoriteById(itemID))
                     false
                 } else {
                     it.insertFav(Favorites(itemName = name, itemID = itemID))

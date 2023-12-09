@@ -168,7 +168,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         }
     }
 
-    suspend fun getTaxeList(world: String) :Map<String, Any>{
+    private suspend fun getTaxeList(world: String) :Map<String, Any>{
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .addInterceptor(RateLimiter())
@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
             .build()
             .create(taxAPI::class.java)
 
-            return suspendCoroutine { continuation ->
+        return suspendCoroutine { continuation ->
                 api.getTaxes(world).enqueue(object : Callback<ResponseBody> {
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                         if (response.isSuccessful) {
@@ -197,14 +197,14 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
 
                             continuation.resume(taxMap)
                         } else {
-                            Log.i(tag, "receive failed: ${response.code()} with $url")
-                            Log.i(tag, "Error response: ${response.errorBody()?.string()}")
+                            Log.i(taxTag, "receive failed: ${response.code()} with $url")
+                            Log.i(taxTag, "Error response: ${response.errorBody()?.string()}")
                             continuation.resume(emptyMap())
                         }
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                        Log.i(tag, "onFailure: ${t.message}")
+                        Log.i(taxTag, "onFailure: ${t.message}")
                         continuation.resume(emptyMap())
                     }
                 })
@@ -544,26 +544,30 @@ class MainActivity : ComponentActivity(),SharedPreferences.OnSharedPreferenceCha
         coroutineSearchScope.launch {
             itemList = searchName(searchText)
 
-            var itemId=0L
+            var itemId = 0L
 
-            if(itemList[0]!=" "){
-                itemId=itemList[0].toLong()
-            }
-            val itemName=itemList[1]
+            try {
+                if (itemList[0] != " ") {
+                    itemId = itemList[0].toLong()
+                }
+                val itemName = itemList[1]
 
-            if(itemList.isNotEmpty()){
-                val intent = Intent(context, ItemActivity::class.java)
-                intent.putExtra("itemId", itemId)
-                intent.putExtra("itemName", itemName)
-                context.startActivity(intent)
-            }
-            else{
+                if (itemList.isNotEmpty()) {
+                    val intent = Intent(context, ItemActivity::class.java)
+                    intent.putExtra("itemId", itemId)
+                    intent.putExtra("itemName", itemName)
+                    context.startActivity(intent)
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(context, "item not found", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: IndexOutOfBoundsException) {
                 runOnUiThread {
                     Toast.makeText(context, "item not found", Toast.LENGTH_SHORT).show()
                 }
             }
-                }
-
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

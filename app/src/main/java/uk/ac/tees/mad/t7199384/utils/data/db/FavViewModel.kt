@@ -46,7 +46,7 @@ class FavViewModel(appContext: Context) : ViewModel() {
         }
     }
 
-    suspend fun findFavoriteById(itemId: Long): Favorites? {
+    suspend fun findFavoriteById(itemId: Long): Favorites {
         return withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
             favDao.findById(itemId)
         }
