@@ -188,11 +188,19 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
             when (listing) {
                 is Listing.NormalListing -> {
                     val currentPrice = listing.pricePerUnit
-                    if (cheapHQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && listing.hq) {
+                    if (listing.hq && cheapHQ == null){
                         cheapHQ = listing.pricePerUnit
                         quantityHQ = listing.quantity
                     }
-                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ && !listing.hq) {
+                    else if (listing.hq  || (currentPrice * listing.quantity < cheapHQ!! * quantityHQ!!)) {
+                        cheapHQ = listing.pricePerUnit
+                        quantityHQ = listing.quantity
+                    }
+                    if (!listing.hq && cheapNQ == null){
+                        cheapHQ = listing.pricePerUnit
+                        quantityHQ = listing.quantity
+                    }
+                    else if (!listing.hq &&  (currentPrice * listing.quantity < cheapNQ!! * quantityNQ!!)) {
                         cheapNQ = listing.pricePerUnit
                         quantityNQ = listing.quantity
                     }
@@ -201,11 +209,19 @@ class ItemActivity : ComponentActivity(), SharedPreferences.OnSharedPreferenceCh
                 is Listing.WorldListing -> {
 
                     val currentPrice = listing.pricePerUnit
-                    if (cheapHQ == null || currentPrice * listing.quantity < cheapHQ * quantityHQ!! && listing.hq) {
+                    if (listing.hq && cheapHQ == null) {
                         cheapHQ = listing.pricePerUnit
                         quantityHQ = listing.quantity
                     }
-                    if (cheapNQ == null || currentPrice * listing.quantity < cheapHQ * quantityNQ!! && !listing.hq) {
+                    else if (listing.hq && currentPrice * listing.quantity < cheapHQ!! * quantityHQ!!) {
+                        cheapHQ = listing.pricePerUnit
+                        quantityHQ = listing.quantity
+                    }
+                    if (!listing.hq && cheapNQ == null) {
+                        cheapNQ = listing.pricePerUnit
+                        quantityNQ = listing.quantity
+                    }
+                    else if (!listing.hq && currentPrice * listing.quantity < cheapNQ!! * quantityNQ!!) {
                         cheapNQ = listing.pricePerUnit
                         quantityNQ = listing.quantity
                     }
